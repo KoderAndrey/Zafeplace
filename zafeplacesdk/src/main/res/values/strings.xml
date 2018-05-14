@@ -1,0 +1,11 @@
+<resources>
+    <string name="your_device_does_not_have_fingerprint_sensor">Your Device does not have a Fingerprint Sensor</string>
+    <string name="fingerprint_auth_permission_not_enabled">Fingerprint authentication permission not enabled</string>
+    <string name="register_fingerprint_in_settings">Register at least one fingerprint in Settings</string>
+    <string name="lock_screen_security_not_enabled_in_settings">Lock screen security not enabled in Settings</string>
+    <string name="write_external_storage_permission_not_enabled">Write external storage permission not enabled</string>
+    <string name="you_need_auth_to_get_private_key">You need to authenticate to get private key</string>
+    <string name="you_need_auth_to_get_pin_code">You need to authenticate to get pin code</string>
+    <string name="you_need_auth_to_generate_wallet">You need to authenticate to generate wallet</string>
+
+</resources>
