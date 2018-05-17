@@ -75,6 +75,7 @@ public class PreferencesManager {
         user.setSecondName(encryption(ZAFEPLACE_PASSWORD,secondName));
         user.setEmail(encryption(ZAFEPLACE_PASSWORD,email));
         user.setAdditionalData(encryption(ZAFEPLACE_PASSWORD,additionalData));
+        user.setValidationTime(System.currentTimeMillis());
         String userString = new Gson().toJson(user);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putString(USER_PREF_KEY, userString).apply();

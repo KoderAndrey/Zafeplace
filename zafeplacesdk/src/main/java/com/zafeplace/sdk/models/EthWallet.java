@@ -2,6 +2,7 @@ package com.zafeplace.sdk.models;
 
 public class EthWallet extends Wallet{
 
+    private String currencyName;
     private String privateKey;
     private String address;
 
@@ -19,5 +20,13 @@ public class EthWallet extends Wallet{
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getCurrencyName() {
+        return currencyName;
+    }
+
+    public void setCurrencyName(String currencyName) {
+        this.currencyName = currencyName;
     }
 }

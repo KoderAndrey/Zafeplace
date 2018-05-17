@@ -2,6 +2,7 @@ package com.zafeplace.sdk.models;
 
 public class User {
 
+    private long validationTime;
     private String firstName;
     private String secondName;
     private String email;
@@ -37,5 +38,13 @@ public class User {
 
     public void setAdditionalData(String additionalData) {
         this.additionalData = additionalData;
+    }
+
+    public long getValidationTime() {
+        return validationTime;
+    }
+
+    public void setValidationTime(long validationTime) {
+        this.validationTime = validationTime;
     }
 }

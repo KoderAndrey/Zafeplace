@@ -10,7 +10,12 @@ import android.widget.Toast;
 import com.zafeplace.sdk.Zafeplace;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import com.zafeplace.sdk.models.EthWallet;
+import com.zafeplace.sdk.models.Wallet;
 import com.zafeplace.sdk.utils.FingerprintHandler;
+
+import java.util.List;
+
+import static com.zafeplace.sdk.Zafeplace.WalletTypes.ETH_WALLET;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -23,7 +28,7 @@ public class MainActivity extends AppCompatActivity {
 //            @Override
 //            public void onResponse(String message, boolean isSuccess) {
 //                if(isSuccess){
-//                    Zafeplace.getInstance().generateWallet(Zafeplace.ETH_WALLET, MainActivity.this, new OnWalletGenerateListener() {
+//                    Zafeplace.getInstance().generateWallet(ETH_WALLET, MainActivity.this, new OnWalletGenerateListener() {
 //                        @Override
 //                        public void onSuccess(String privateKey) {
 //                            Log.wtf("aaa",privateKey);
@@ -31,15 +36,17 @@ public class MainActivity extends AppCompatActivity {
 //
 //                        @Override
 //                        public void onError(String error) {
-//
+//                            Log.wtf("aaa",error);
 //                        }
 //                    });
 //
 //                }
+//                else Log.wtf("aaa",message);
 //            }
 //        });
 
-        EthWallet ethWallet = (EthWallet) Zafeplace.getInstance().getWallet(Zafeplace.ETH_WALLET,MainActivity.this);
-        Log.wtf("aaa",ethWallet.getPrivateKey());
+
+        List<Wallet> walletList = Zafeplace.getInstance().getSemiPublicData(MainActivity.this);
+        Log.wtf("aaa",walletList.get(0).getAddress());
     }
 }
