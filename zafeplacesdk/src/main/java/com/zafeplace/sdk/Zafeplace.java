@@ -5,11 +5,16 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 
+import com.zafeplace.sdk.callbacks.OnResponseListener;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import com.zafeplace.sdk.managers.PreferencesManager;
 import com.zafeplace.sdk.models.EthWallet;
 import com.zafeplace.sdk.models.Wallet;
+import com.zafeplace.sdk.server.ZafeplaceApi;
+import com.zafeplace.sdk.server.models.BalanceModel;
+import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
 
@@ -22,12 +27,17 @@ import org.web3j.protocol.http.HttpService;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 import static com.zafeplace.sdk.Constants.AuthType.PIN_AUTH;
 import static com.zafeplace.sdk.Constants.ETH_SERVICE_URL;
 import static com.zafeplace.sdk.Constants.WalletType.ETH;
 import static com.zafeplace.sdk.Constants.ZAFEPLACE_PASSWORD;
 import static com.zafeplace.sdk.managers.PreferencesManager.getEthWallet;
 import static com.zafeplace.sdk.managers.PreferencesManager.isLoggedIn;
+import static com.zafeplace.sdk.managers.PreferencesManager.setAuthToken;
 import static com.zafeplace.sdk.managers.PreferencesManager.setAuthType;
 import static com.zafeplace.sdk.managers.PreferencesManager.setEthWallet;
 import static com.zafeplace.sdk.managers.PreferencesManager.setIsLoggedIn;
@@ -36,6 +46,7 @@ import static com.zafeplace.sdk.utils.AppUtils.isNull;
 import static com.zafeplace.sdk.utils.EncryptionUtils.decryption;
 import static com.zafeplace.sdk.utils.EncryptionUtils.encryption;
 import static com.zafeplace.sdk.utils.StorageUtils.deleteFile;
+import static com.zafeplace.sdk.utils.WalletUtils.getWalletName;
 
 public class Zafeplace {
 
@@ -50,6 +61,40 @@ public class Zafeplace {
             instance = new Zafeplace();
         }
         return instance;
+    }
+
+
+    public void getAccessToken(String packageName, String appSecret, final Activity context, final OnResponseListener onResponseListener){
+        ZafeplaceApi.getInstance(context).getAccessToken(packageName, appSecret).enqueue(new Callback<LoginResponse>() {
+            @Override
+            public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
+                if(response.isSuccessful()) {
+                    onResponseListener.onSuccess();
+                    setAuthToken(response.body().accessToken,context);
+                }
+                else onResponseListener.onError(response.message());
+
+            }
+
+            @Override
+            public void onFailure(Call<LoginResponse> call, Throwable t) {
+                onResponseListener.onError(t.getMessage());
+            }
+        });
+    }
+
+    public void getWalletBalance(WalletTypes walletType, String address, Activity context){
+        ZafeplaceApi.getInstance(context).getWalletBalance(getWalletName(walletType),address).enqueue(new Callback<BalanceModel>() {
+            @Override
+            public void onResponse(Call<BalanceModel> call, Response<BalanceModel> response) {
+
+            }
+
+            @Override
+            public void onFailure(Call<BalanceModel> call, Throwable t) {
+
+            }
+        });
     }
 
     public void fingerprintLogin(Activity context, FingerprintHandler.FingerprintAuthenticationCallback fingerprintAuthenticationCallback){
@@ -86,7 +131,7 @@ public class Zafeplace {
                 setEthWallet(privateKey,address,context);
 
                 deleteFile(Environment.getExternalStorageDirectory() + "/" + wallet);
-                onWalletGenerateListener.onSuccess(privateKey);
+                onWalletGenerateListener.onSuccess(address);
 
             } catch (Throwable e) {
                 onWalletGenerateListener.onError(e.getMessage());

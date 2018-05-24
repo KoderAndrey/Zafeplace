@@ -14,12 +14,23 @@ import static com.zafeplace.sdk.utils.EncryptionUtils.encryption;
 
 public class PreferencesManager {
 
+    private final static String ACCESS_TOKEN_PREF_KEY = "access_token_pref_key";
     private final static String ETH_WALLET_PREF_KEY = "eth_wallet_pref_key";
     private final static String USER_PREF_KEY = "user_pref_key";
 
     private final static String IS_LOGGED_IN_PREF_KEY = "is_logged_in_pref_key";
     private final static String AUTH_TYPE_PREF_KEY = "auth_type_pref_key";
     private final static String PIN_CODE_PREF_KEY = "pin_code_pref_key";
+
+    public static void setAuthToken(String token, Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putString(ACCESS_TOKEN_PREF_KEY, token).apply();
+    }
+
+    public static String getAuthToken(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        return prefs.getString(ACCESS_TOKEN_PREF_KEY, null);
+    }
 
     public static void setIsLoggedIn(boolean isLoggedIn, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);

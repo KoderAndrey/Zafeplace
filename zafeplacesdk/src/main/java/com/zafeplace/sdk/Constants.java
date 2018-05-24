@@ -14,6 +14,6 @@ public interface Constants {
     }
 
     interface WalletType{
-        String ETH = "ETH";
+        String ETH = "ethereum";
     }
 }
