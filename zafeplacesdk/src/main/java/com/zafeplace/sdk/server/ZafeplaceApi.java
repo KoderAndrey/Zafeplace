@@ -4,8 +4,11 @@ import android.content.Context;
 
 import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.TransactionRaw;
 
 import okhttp3.OkHttpClient;
+import okhttp3.ResponseBody;
+import retrofit2.Response;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -46,5 +49,15 @@ public class ZafeplaceApi {
     public Call<BalanceModel> getWalletBalance(String walletType, String address) {
         return service.getWalletBalance(walletType, address);
     }
+
+    public Call<BalanceModel> getTokenBalance(String walletType, String address) {
+        return service.getTokenBalance(walletType, address);
+    }
+
+    public Call<TransactionRaw> getRawTransaction(String walletType, String addressSender, String addressRecipient, double amount) {
+        return service.getTransactionRaw(walletType, addressSender, addressRecipient, amount);
+    }
+
+
 }
 

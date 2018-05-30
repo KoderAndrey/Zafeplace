@@ -1,13 +1,15 @@
 package com.zafeplace.sdk;
 
 import android.Manifest;
-import android.app.Activity;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
-import android.util.Log;
 
-import com.zafeplace.sdk.callbacks.OnResponseListener;
+import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
+import com.zafeplace.sdk.callbacks.OnGetRawTransaction;
+import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
+import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import com.zafeplace.sdk.managers.PreferencesManager;
 import com.zafeplace.sdk.models.EthWallet;
@@ -15,6 +17,7 @@ import com.zafeplace.sdk.models.Wallet;
 import com.zafeplace.sdk.server.ZafeplaceApi;
 import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.TransactionRaw;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
 
@@ -22,6 +25,7 @@ import org.web3j.crypto.Credentials;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jFactory;
+import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
 
 import java.util.ArrayList;
@@ -50,6 +54,8 @@ import static com.zafeplace.sdk.utils.WalletUtils.getWalletName;
 
 public class Zafeplace {
 
+    private Context mContext;
+
     public enum WalletTypes {
         ETH_WALLET;
     }
@@ -64,114 +70,151 @@ public class Zafeplace {
     }
 
 
-    public void getAccessToken(String packageName, String appSecret, final Activity context, final OnResponseListener onResponseListener){
-        ZafeplaceApi.getInstance(context).getAccessToken(packageName, appSecret).enqueue(new Callback<LoginResponse>() {
+    public void getAccessToken(String packageName, String appSecret, final OnAccessTokenListener onAccessTokenListener) {
+
+        ZafeplaceApi.getInstance(mContext).getAccessToken(packageName, appSecret).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
-                if(response.isSuccessful()) {
-                    onResponseListener.onSuccess();
-                    setAuthToken(response.body().accessToken,context);
+                if (response.isSuccessful()) {
+                    onAccessTokenListener.onGetToken(response.body().accessToken);
+                    String tok = response.body().accessToken;
+                    setAuthToken(tok, mContext);
+                } else {
+                    String err = response.message();
+                    onAccessTokenListener.onErrorToken(err);
                 }
-                else onResponseListener.onError(response.message());
-
             }
 
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
-                onResponseListener.onError(t.getMessage());
+                onAccessTokenListener.onErrorToken(t.getMessage());
             }
         });
     }
 
-    public void getWalletBalance(WalletTypes walletType, String address, Activity context){
-        ZafeplaceApi.getInstance(context).getWalletBalance(getWalletName(walletType),address).enqueue(new Callback<BalanceModel>() {
+    public void getWalletBalance(WalletTypes walletType, String address, final OnGetWalletBalance onGetWalletBalance) {
+        ZafeplaceApi.getInstance(mContext).getWalletBalance(getWalletName(walletType), address).enqueue(new Callback<BalanceModel>() {
             @Override
             public void onResponse(Call<BalanceModel> call, Response<BalanceModel> response) {
-
+                onGetWalletBalance.onWalletBalance(response.body().balance);
             }
 
             @Override
             public void onFailure(Call<BalanceModel> call, Throwable t) {
-
+                onGetWalletBalance.onErrorWalletBalans(t.getMessage());
             }
         });
     }
 
-    public void fingerprintLogin(Activity context, FingerprintHandler.FingerprintAuthenticationCallback fingerprintAuthenticationCallback){
-        FingerPrintLogin fingerPrintLogin = new FingerPrintLogin(context, fingerprintAuthenticationCallback);
+    public void getTokenBalance(WalletTypes walletType, String address, final OnGetTokenBalance onGetTokenBalance) {
+        ZafeplaceApi.getInstance(mContext).getTokenBalance(getWalletName(walletType), address).enqueue(new Callback<BalanceModel>() {
+            @Override
+            public void onResponse(Call<BalanceModel> call, Response<BalanceModel> response) {
+                onGetTokenBalance.onTokenBalance(response.body().balance);
+            }
+
+            @Override
+            public void onFailure(Call<BalanceModel> call, Throwable t) {
+                onGetTokenBalance.onErrorTokenBalans(t.getMessage());
+            }
+        });
+    }
+
+    public void getRawTransaction(WalletTypes walletType, String addressSender, String addressRecipient, double amount, final OnGetRawTransaction onGetRawTransaction) {
+        ZafeplaceApi.getInstance(mContext).getRawTransaction(getWalletName(walletType), addressSender, addressRecipient, amount).enqueue(new Callback<TransactionRaw>() {
+            @Override
+            public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
+                TransactionRaw raw = response.body();
+                onGetRawTransaction.onGetRaw(raw);
+            }
+
+            @Override
+            public void onFailure(Call<TransactionRaw> call, Throwable t) {
+                onGetRawTransaction.onErrorRaw(t.getMessage());
+            }
+        });
+    }
+
+    public void fingerprintLogin(FingerprintHandler.FingerprintAuthenticationCallback fingerprintAuthenticationCallback) {
+        FingerPrintLogin fingerPrintLogin = new FingerPrintLogin(mContext, fingerprintAuthenticationCallback);
         fingerPrintLogin.initAuth();
     }
 
-    public void pinCodeLogin(Activity context, String code){
-        setIsLoggedIn(true,context);
-        setAuthType(PIN_AUTH, context);
-        setPinCode(encryption(ZAFEPLACE_PASSWORD,code), context);
+    public void pinCodeLogin(String code) {
+        setIsLoggedIn(true, mContext);
+        setAuthType(PIN_AUTH, mContext);
+        setPinCode(encryption(ZAFEPLACE_PASSWORD, code), mContext);
     }
 
-    public void generateWallet(WalletTypes walletType, Activity context, OnWalletGenerateListener onWalletGenerateListener){
-        switch (walletType){
-            case ETH_WALLET: generateEthWallet(context,onWalletGenerateListener);
+    public void generateWallet(WalletTypes walletType, OnWalletGenerateListener onWalletGenerateListener) {
+        switch (walletType) {
+            case ETH_WALLET:
+                generateEthWallet(onWalletGenerateListener);
         }
     }
 
-    private void generateEthWallet(Activity context, OnWalletGenerateListener onWalletGenerateListener){
-        if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            onWalletGenerateListener.onError(context.getString(R.string.write_external_storage_permission_not_enabled));
-        }
-        else if(!isLoggedIn(context)){
-            onWalletGenerateListener.onError(context.getString(R.string.you_need_auth_to_generate_wallet));
-        }
-        else {
+    private void generateEthWallet(OnWalletGenerateListener onWalletGenerateListener) {
+        if (ActivityCompat.checkSelfPermission(mContext, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            onWalletGenerateListener.onErrorGenerate(mContext.getString(R.string.write_external_storage_permission_not_enabled));
+        } else if (!isLoggedIn(mContext)) {
+            onWalletGenerateListener.onErrorGenerate(mContext.getString(R.string.you_need_auth_to_generate_wallet));
+        } else {
             try {
                 Web3j web3 = Web3jFactory.build(new HttpService(ETH_SERVICE_URL));
                 String wallet = WalletUtils.generateLightNewWalletFile(ZAFEPLACE_PASSWORD, Environment.getExternalStorageDirectory());
-                Credentials credentials = WalletUtils.loadCredentials(ZAFEPLACE_PASSWORD,Environment.getExternalStorageDirectory() + "/" + wallet);
+                Credentials credentials = WalletUtils.loadCredentials(ZAFEPLACE_PASSWORD, Environment.getExternalStorageDirectory() + "/" + wallet);
                 String privateKey = String.format("%x", credentials.getEcKeyPair().getPrivateKey());
                 String address = credentials.getAddress();
-                setEthWallet(privateKey,address,context);
-
+                setEthWallet(privateKey, address, mContext);
                 deleteFile(Environment.getExternalStorageDirectory() + "/" + wallet);
-                onWalletGenerateListener.onSuccess(address);
-
+                onWalletGenerateListener.onSuccessGenerate(address);
             } catch (Throwable e) {
-                onWalletGenerateListener.onError(e.getMessage());
+                onWalletGenerateListener.onErrorGenerate(e.getMessage());
             }
         }
     }
 
-    public void saveUserData(String firstName,String secondName, String email, String additionalData, Activity context){
-        PreferencesManager.setUserData(firstName,secondName,email,additionalData,context);
+    public void saveUserData(String firstName, String secondName, String email, String additionalData) {
+        PreferencesManager.setUserData(firstName, secondName, email, additionalData, mContext);
     }
 
-    public Wallet getWallet(WalletTypes walletType, Activity context){
-        switch (walletType){
-            case ETH_WALLET: return PreferencesManager.getEthWallet(context);
-            default:return null;
+    public Wallet getWallet(WalletTypes walletType) {
+        switch (walletType) {
+            case ETH_WALLET:
+                return PreferencesManager.getEthWallet(mContext);
+            default:
+                return null;
         }
     }
 
-    public boolean isIdentityExist(WalletTypes walletType, Activity context){
-        switch (walletType){
-            case ETH_WALLET: return !isNull(getEthWallet(context));
-            default: return false;
+    public boolean isIdentityExist(WalletTypes walletType) {
+        switch (walletType) {
+            case ETH_WALLET:
+                return !isNull(getEthWallet(mContext));
+            default:
+                return false;
         }
     }
 
-    public String getPinCode(Activity context){
-        return isLoggedIn(context) ? decryption(ZAFEPLACE_PASSWORD,PreferencesManager.getPinCode(context)) :
-                context.getString(R.string.you_need_auth_to_get_pin_code);
+    public String getPinCode() {
+        return isLoggedIn(mContext) ? decryption(ZAFEPLACE_PASSWORD, PreferencesManager.getPinCode(mContext)) :
+                mContext.getString(R.string.you_need_auth_to_get_pin_code);
     }
 
-    public List<Wallet> getSemiPublicData(Activity context){
+    public List<Wallet> getSemiPublicData() {
         List<Wallet> walletList = new ArrayList<>();
         EthWallet ethWallet = new EthWallet();
         ethWallet.setCurrencyName(ETH);
-        ethWallet.setAddress(getEthWallet(context).getAddress());
+        ethWallet.setAddress(getEthWallet(mContext).getAddress());
         walletList.add(ethWallet);
         return walletList;
     }
 
-    public void logout(Activity context){
-        setIsLoggedIn(false,context);
+    public void logout() {
+        setIsLoggedIn(false, mContext);
+    }
+
+    public void setContext(Context context) {
+        this.mContext = context;
     }
 }

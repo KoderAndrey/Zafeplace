@@ -1,6 +1,6 @@
 package com.zafeplace.sdk.callbacks;
 
 public interface OnWalletGenerateListener {
-    void onSuccess(String address);
-    void onError(String error);
+    void onSuccessGenerate(String address);
+    void onErrorGenerate(String error);
 }

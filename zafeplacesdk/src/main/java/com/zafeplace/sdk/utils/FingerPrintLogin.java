@@ -43,10 +43,10 @@ public class FingerPrintLogin {
     private static final String KEY_NAME = "androidHive";
     private KeyStore keyStore;
     private Cipher cipher;
-    private Activity context;
+    private Context context;
     private FingerprintHandler.FingerprintAuthenticationCallback fingerprintAuthenticationCallback;
 
-    public FingerPrintLogin(Activity context, FingerprintHandler.FingerprintAuthenticationCallback fingerprintAuthenticationCallback){
+    public FingerPrintLogin(Context context, FingerprintHandler.FingerprintAuthenticationCallback fingerprintAuthenticationCallback){
         this.context = context;
         this.fingerprintAuthenticationCallback = fingerprintAuthenticationCallback;
     }

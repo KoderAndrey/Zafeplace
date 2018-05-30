@@ -2,8 +2,11 @@ package com.zafeplace.sdk.server;
 
 import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.TransactionRaw;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.Response;
 import retrofit2.http.GET;
 import retrofit2.http.Path;
 import retrofit2.http.Query;
@@ -17,5 +20,14 @@ public interface ZafeplaceApiService {
                                        @Query("appSecret") String appSecret);
 
     @GET("/app/{network}/account/balance")
-    Call<BalanceModel> getWalletBalance(@Path("network") String walletType,@Query("address") String address);
+    Call<BalanceModel> getWalletBalance(@Path("network") String walletType, @Query("address") String address);
+
+    @GET("/app/{network}/account/token-balance")
+    Call<BalanceModel> getTokenBalance(@Path("network") String walletType, @Query("address") String address);
+
+    @GET("/app/{network}/account/native-coin/rawtx")
+    Call<TransactionRaw> getTransactionRaw(@Path("network") String walletType,
+                                         @Query("sender") String addressSender,
+                                         @Query("recipient") String addressRecipient,
+                                         @Query("amount") double amount);
 }
