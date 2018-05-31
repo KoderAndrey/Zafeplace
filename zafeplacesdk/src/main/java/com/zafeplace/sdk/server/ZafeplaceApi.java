@@ -3,6 +3,8 @@ package com.zafeplace.sdk.server;
 import android.content.Context;
 
 import com.zafeplace.sdk.server.models.BalanceModel;
+import com.zafeplace.sdk.server.models.ErrorTransaction;
+import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
@@ -58,6 +60,12 @@ public class ZafeplaceApi {
         return service.getTransactionRaw(walletType, addressSender, addressRecipient, amount);
     }
 
+    public Call<TransactionRaw> getTokenTransactionRaw(String walletType, String addressSender, String addressRecipient, int amount) {
+        return service.getTokenTransactionRaw(walletType, addressSender, addressRecipient, amount);
+    }
 
+    public Call<ErrorTransaction> doTransaction(String signTx, String walletType) {
+        return service.doTransaction(new HexModel(signTx), walletType);
+    }
 }
 

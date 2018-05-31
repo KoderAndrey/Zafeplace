@@ -5,36 +5,47 @@ import android.content.Context;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 
 import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
-import com.zafeplace.sdk.callbacks.OnGetRawTransaction;
+import com.zafeplace.sdk.callbacks.OnGetRawTokenTransactionHex;
+import com.zafeplace.sdk.callbacks.OnGetRawTransactionHex;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
+import com.zafeplace.sdk.callbacks.OnMakeTransaction;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import com.zafeplace.sdk.managers.PreferencesManager;
 import com.zafeplace.sdk.models.EthWallet;
 import com.zafeplace.sdk.models.Wallet;
 import com.zafeplace.sdk.server.ZafeplaceApi;
 import com.zafeplace.sdk.server.models.BalanceModel;
+import com.zafeplace.sdk.server.models.ErrorTransaction;
 import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
 
+import java.io.IOException;
+import java.math.BigInteger;
+
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.RawTransaction;
+import org.web3j.crypto.TransactionEncoder;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3j;
 import org.web3j.protocol.Web3jFactory;
-import org.web3j.protocol.core.methods.response.EthSendTransaction;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.utils.Numeric;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static android.content.ContentValues.TAG;
 import static com.zafeplace.sdk.Constants.AuthType.PIN_AUTH;
 import static com.zafeplace.sdk.Constants.ETH_SERVICE_URL;
 import static com.zafeplace.sdk.Constants.WalletType.ETH;
@@ -55,6 +66,7 @@ import static com.zafeplace.sdk.utils.WalletUtils.getWalletName;
 public class Zafeplace {
 
     private Context mContext;
+    private PreferencesManager mManager;
 
     public enum WalletTypes {
         ETH_WALLET;
@@ -69,6 +81,9 @@ public class Zafeplace {
         return instance;
     }
 
+    private Zafeplace() {
+        mManager = new PreferencesManager();
+    }
 
     public void getAccessToken(String packageName, String appSecret, final OnAccessTokenListener onAccessTokenListener) {
 
@@ -120,17 +135,65 @@ public class Zafeplace {
         });
     }
 
-    public void getRawTransaction(WalletTypes walletType, String addressSender, String addressRecipient, double amount, final OnGetRawTransaction onGetRawTransaction) {
+    public void getRawTransaction(WalletTypes walletType, String addressSender, String addressRecipient, double amount,
+                                  final OnGetRawTransactionHex onGetRawTransactionHex) {
         ZafeplaceApi.getInstance(mContext).getRawTransaction(getWalletName(walletType), addressSender, addressRecipient, amount).enqueue(new Callback<TransactionRaw>() {
             @Override
             public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
+                Log.d(TAG, " call nat " + call.request().url());
                 TransactionRaw raw = response.body();
-                onGetRawTransaction.onGetRaw(raw);
+                Credentials credentials = Credentials.create(PreferencesManager.getEthWallet(mContext).getPrivateKey());
+                RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.getRawTx().getNonce(), raw.getRawTx().getGasPrice(),
+                        raw.getRawTx().getGasLimit(), raw.getRawTx().getTo(), raw.getRawTx().getValue());
+                byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+                String hexValue = Numeric.toHexString(signedMessage);
+                onGetRawTransactionHex.onGetRawHex(hexValue);
             }
 
             @Override
             public void onFailure(Call<TransactionRaw> call, Throwable t) {
-                onGetRawTransaction.onErrorRaw(t.getMessage());
+                onGetRawTransactionHex.onErrorRawHex(t.getMessage());
+            }
+        });
+    }
+
+    public void getTokenTransactionRaw(WalletTypes walletType, String addressSender, String addressRecipient, int amount,
+                                       final OnGetRawTokenTransactionHex onGetRawTokenTransactionHex) {
+        ZafeplaceApi.getInstance(mContext).getTokenTransactionRaw(getWalletName(walletType), addressSender, addressRecipient, amount).enqueue(new Callback<TransactionRaw>() {
+            @Override
+            public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
+                Log.d(TAG, " call " + call.request().url());
+                TransactionRaw raw = response.body();
+                Credentials credentials = Credentials.create(PreferencesManager.getEthWallet(mContext).getPrivateKey());
+                RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.getRawTx().getNonce(), raw.getRawTx().getGasPrice(),
+                        raw.getRawTx().getGasLimit(), raw.getRawTx().getTo(), raw.getRawTx().getValue());
+                byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+                String hexValue = Numeric.toHexString(signedMessage);
+                onGetRawTokenTransactionHex.onGetTokenRawHex(hexValue);
+            }
+
+            @Override
+            public void onFailure(Call<TransactionRaw> call, Throwable t) {
+                onGetRawTokenTransactionHex.onErrorTokenRawHex(t.getMessage());
+            }
+        });
+    }
+
+    public void doTransaction(WalletTypes walletType, String signTx, final OnMakeTransaction onMakeTransaction) {
+        ZafeplaceApi.getInstance(mContext).doTransaction(signTx, getWalletName(walletType)).enqueue(new Callback<ErrorTransaction>() {
+            @Override
+            public void onResponse(Call<ErrorTransaction> call, Response<ErrorTransaction> response) {
+                try {
+                    onMakeTransaction.OnSuccessTransaction(response.body().message);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    onMakeTransaction.OnErrorTransaction(e.getMessage());
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ErrorTransaction> call, Throwable t) {
+                onMakeTransaction.OnErrorTransaction(t.getMessage());
             }
         });
     }

@@ -19,4 +19,9 @@ public class TransactionRaw {
     public void setRawTx(RawTx rawTx) {
         this.rawTx = rawTx;
     }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
 }

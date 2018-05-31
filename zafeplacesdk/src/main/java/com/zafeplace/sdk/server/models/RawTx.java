@@ -1,13 +1,15 @@
 package com.zafeplace.sdk.server.models;
 
+import java.math.BigInteger;
+
 public class RawTx {
     private String from;
-    private String nonce;
-    private String gasPrice;
-    private String gasLimit;
+    private BigInteger nonce;
+    private BigInteger gasPrice;
+    private BigInteger gasLimit;
     private String to;
-    private String value;
-    private String chainId;
+    private BigInteger value;
+    private BigInteger chainId;
 
     public String getFrom() {
         return from;
@@ -17,27 +19,27 @@ public class RawTx {
         this.from = from;
     }
 
-    public String getNonce() {
+    public BigInteger getNonce() {
         return nonce;
     }
 
-    public void setNonce(String nonce) {
+    public void setNonce(BigInteger nonce) {
         this.nonce = nonce;
     }
 
-    public String getGasPrice() {
+    public BigInteger getGasPrice() {
         return gasPrice;
     }
 
-    public void setGasPrice(String gasPrice) {
+    public void setGasPrice(BigInteger gasPrice) {
         this.gasPrice = gasPrice;
     }
 
-    public String getGasLimit() {
+    public BigInteger getGasLimit() {
         return gasLimit;
     }
 
-    public void setGasLimit(String gasLimit) {
+    public void setGasLimit(BigInteger gasLimit) {
         this.gasLimit = gasLimit;
     }
 
@@ -49,19 +51,32 @@ public class RawTx {
         this.to = to;
     }
 
-    public String getValue() {
+    public BigInteger getValue() {
         return value;
     }
 
-    public void setValue(String value) {
+    public void setValue(BigInteger value) {
         this.value = value;
     }
 
-    public String getChainId() {
+    public BigInteger getChainId() {
         return chainId;
     }
 
-    public void setChainId(String chainId) {
+    public void setChainId(BigInteger chainId) {
         this.chainId = chainId;
+    }
+
+    @Override
+    public String toString() {
+        return "RawTx{" +
+                "from='" + from + '\'' +
+                ", nonce='" + nonce + '\'' +
+                ", gasPrice='" + gasPrice + '\'' +
+                ", gasLimit='" + gasLimit + '\'' +
+                ", to='" + to + '\'' +
+                ", value='" + value + '\'' +
+                ", chainId='" + chainId + '\'' +
+                '}';
     }
 }

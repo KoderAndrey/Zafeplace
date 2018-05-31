@@ -6,16 +6,17 @@ import android.util.Log;
 
 import com.zafeplace.sdk.Zafeplace;
 import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
-import com.zafeplace.sdk.callbacks.OnGetRawTransaction;
+import com.zafeplace.sdk.callbacks.OnGetRawTokenTransactionHex;
+import com.zafeplace.sdk.callbacks.OnGetRawTransactionHex;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
+import com.zafeplace.sdk.callbacks.OnMakeTransaction;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
-import com.zafeplace.sdk.server.models.TransactionRaw;
 
 import static com.zafeplace.sdk.Zafeplace.WalletTypes.ETH_WALLET;
 
 public class MainActivity extends AppCompatActivity implements OnWalletGenerateListener, OnGetWalletBalance,
-        OnAccessTokenListener, OnGetTokenBalance, OnGetRawTransaction {
+        OnAccessTokenListener, OnGetTokenBalance, OnGetRawTransactionHex, OnMakeTransaction, OnGetRawTokenTransactionHex {
     public static String TAG = "TAG";
     Zafeplace mZafeplace;
 
@@ -30,12 +31,15 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
                 this);
     }
 
+
     @Override
     public void onSuccessGenerate(String address) {
         Log.d(TAG, "onSuccess " + address);
         mZafeplace.getWalletBalance(ETH_WALLET, address, this);
         mZafeplace.getTokenBalance(ETH_WALLET, address, this);
-        mZafeplace.getRawTransaction(ETH_WALLET, "0xb7A66BEf08DA07a78c8a8284B873f976967D4052", "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 0.1, this);
+        mZafeplace.getRawTransaction(ETH_WALLET, address, "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 0.1, this);
+        Log.d(TAG, "body ");
+        mZafeplace.getTokenTransactionRaw(ETH_WALLET, address, "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 100, this);
     }
 
     @Override
@@ -76,12 +80,34 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     @Override
-    public void onGetRaw(TransactionRaw raw) {
-        Log.d(TAG, "onGetRaw " + raw.getRawTx().getValue());
+    public void onGetRawHex(String rawHex) {
+        Log.d(TAG, "onGetRawHex " + rawHex);
+        mZafeplace.doTransaction(ETH_WALLET, rawHex, this);
     }
 
     @Override
-    public void onErrorRaw(String error) {
+    public void onErrorRawHex(String error) {
         Log.d(TAG, "onErrorRaw " + error);
+    }
+
+    @Override
+    public void OnSuccessTransaction(String res) {
+        Log.d(TAG, "OnSuccessTransaction " + res);
+    }
+
+    @Override
+    public void OnErrorTransaction(String error) {
+        Log.d(TAG, "OnSuccessTransaction " + error);
+    }
+
+    @Override
+    public void onGetTokenRawHex(String rawHex) {
+        Log.d(TAG, "onGetTokenRawHex " + rawHex);
+        mZafeplace.doTransaction(ETH_WALLET, rawHex, this);
+    }
+
+    @Override
+    public void onErrorTokenRawHex(String error) {
+        Log.d(TAG, "onErrorTokenRawHex " + error);
     }
 }
