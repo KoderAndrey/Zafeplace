@@ -1,13 +1,13 @@
 package com.zafeplace.sample;
 
+import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import com.zafeplace.sdk.Zafeplace;
-import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
-import com.zafeplace.sdk.callbacks.OnGetRawTokenTransactionHex;
-import com.zafeplace.sdk.callbacks.OnGetRawTransactionHex;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
@@ -16,98 +16,133 @@ import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import static com.zafeplace.sdk.Zafeplace.WalletTypes.ETH_WALLET;
 
 public class MainActivity extends AppCompatActivity implements OnWalletGenerateListener, OnGetWalletBalance,
-        OnAccessTokenListener, OnGetTokenBalance, OnGetRawTransactionHex, OnMakeTransaction, OnGetRawTokenTransactionHex {
+        OnGetTokenBalance, OnMakeTransaction {
     public static String TAG = "TAG";
-    Zafeplace mZafeplace;
+    private Zafeplace mZafeplace;
+    private LoadingDialogFragment mLoadingDialogFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Log.d(TAG, "onCreate");
-        mZafeplace = Zafeplace.getInstance();
-        mZafeplace.getAccessToken("com.zafeplace.sample",
-                "756496e0a7d900ade56913cc098749ee",
-                this);
+        mLoadingDialogFragment = LoadingDialogFragment.newInstance();
+        mZafeplace = Zafeplace.getInstance(this);
     }
 
 
     @Override
+    public void onStartGenerate() {
+        mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
+    }
+
+    @Override
     public void onSuccessGenerate(String address) {
-        Log.d(TAG, "onSuccess " + address);
-        mZafeplace.getWalletBalance(ETH_WALLET, address, this);
-        mZafeplace.getTokenBalance(ETH_WALLET, address, this);
-        mZafeplace.getRawTransaction(ETH_WALLET, address, "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 0.1, this);
-        Log.d(TAG, "body ");
-        mZafeplace.getTokenTransactionRaw(ETH_WALLET, address, "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 100, this);
+        mLoadingDialogFragment.dismiss();
+        Toast.makeText(this, "Wallet was generated", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onErrorGenerate(String error) {
-        Log.d(TAG, "onError " + error);
+        mLoadingDialogFragment.dismiss();
+        Toast.makeText(this, "Error generate wallet " + error, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onWalletBalance(String response) {
-        Log.d(TAG, "onWalletBalance " + response);
+        mLoadingDialogFragment.dismiss();
+        Toast.makeText(this, "Wallet balance " + response, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onErrorWalletBalans(String error) {
-        Log.d(TAG, "onErrorBalans " + error);
-    }
-
-    @Override
-    public void onGetToken(String response) {
-        Log.d(TAG, "getAccessToken succ " + response);
-        mZafeplace.pinCodeLogin("abs");
-        mZafeplace.generateWallet(ETH_WALLET, this);
-    }
-
-    @Override
-    public void onErrorToken(String error) {
-        Log.d(TAG, "getAccessToken err " + error);
+    public void onErrorWalletBalance(String error) {
+        mLoadingDialogFragment.dismiss();
+        Toast.makeText(this, "Error Wallet Balans " + error, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onTokenBalance(String balans) {
-        Log.d(TAG, "onTokenBalance " + balans);
+        mLoadingDialogFragment.dismiss();
+        Toast.makeText(this, "Token balans " + balans, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onErrorTokenBalans(String error) {
-        Log.d(TAG, "onErrorTokenBalans " + error);
+    public void onErrorTokenBalance(String error) {
+        mLoadingDialogFragment.dismiss();
+        Toast.makeText(this, "Error Token Balan " + error, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void onGetRawHex(String rawHex) {
-        Log.d(TAG, "onGetRawHex " + rawHex);
-        mZafeplace.doTransaction(ETH_WALLET, rawHex, this);
+    public void onStartTransaction() {
+        mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
     }
 
     @Override
-    public void onErrorRawHex(String error) {
-        Log.d(TAG, "onErrorRaw " + error);
+    public void onBreakTransaction() {
+        mLoadingDialogFragment.dismiss();
     }
 
     @Override
-    public void OnSuccessTransaction(String res) {
-        Log.d(TAG, "OnSuccessTransaction " + res);
+    public void onSuccessTransaction(String res) {
+        mLoadingDialogFragment.dismiss();
+        Toast.makeText(this, "Result transaction " + res, Toast.LENGTH_SHORT).show();
     }
 
     @Override
-    public void OnErrorTransaction(String error) {
-        Log.d(TAG, "OnSuccessTransaction " + error);
+    public void onErrorTransaction(String error) {
+        mLoadingDialogFragment.dismiss();
+        Toast.makeText(this, "Error transaction " + error, Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public void onGetTokenRawHex(String rawHex) {
-        Log.d(TAG, "onGetTokenRawHex " + rawHex);
-        mZafeplace.doTransaction(ETH_WALLET, rawHex, this);
-    }
 
     @Override
-    public void onErrorTokenRawHex(String error) {
-        Log.d(TAG, "onErrorTokenRawHex " + error);
+    public void onBackPressed() {
+        moveTaskToBack(true);
+    }
+
+    public void generateWallet(View view) {
+        mZafeplace.generateWallet(ETH_WALLET, this);
+    }
+
+    public void getWalletBalance(View view) {
+        if (mZafeplace.getWallet(ETH_WALLET).getAddress() != null) {
+            mZafeplace.getWalletBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), this);
+            mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
+        } else {
+            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void getTokenBalance(View view) {
+        if (mZafeplace.getWallet(ETH_WALLET).getAddress() != null) {
+            mZafeplace.getTokenBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), this);
+            mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
+        } else {
+            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void createTransaction(View view) {
+        if (mZafeplace.getWallet(ETH_WALLET).getAddress() != null) {
+            mZafeplace.createTransaction(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(),
+                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 0.1, this);
+        } else {
+            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public void createTokenTransaction(View view) {
+        if (mZafeplace.getWallet(ETH_WALLET).getAddress() != null) {
+            mZafeplace.createTransactionToken(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(),
+                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 10, this);
+        } else {
+            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    public static void start(Context context) {
+        Intent starter = new Intent(context, MainActivity.class);
+        starter.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        starter.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        context.startActivity(starter);
     }
 }

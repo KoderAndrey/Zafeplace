@@ -2,15 +2,14 @@ package com.zafeplace.sdk.server;
 
 import android.content.Context;
 
+import com.google.gson.JsonObject;
 import com.zafeplace.sdk.server.models.BalanceModel;
-import com.zafeplace.sdk.server.models.ErrorTransaction;
 import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
-import retrofit2.Response;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
@@ -44,7 +43,7 @@ public class ZafeplaceApi {
         return retrofit;
     }
 
-    public Call<LoginResponse> getAccessToken(String packageName, String appSecret) {
+    public Call<LoginResponse> generateAccessToken(String packageName, String appSecret) {
         return service.getAccessToken(packageName, appSecret);
     }
 
@@ -64,7 +63,7 @@ public class ZafeplaceApi {
         return service.getTokenTransactionRaw(walletType, addressSender, addressRecipient, amount);
     }
 
-    public Call<ErrorTransaction> doTransaction(String signTx, String walletType) {
+    public Call<JsonObject> doTransaction(String signTx, String walletType) {
         return service.doTransaction(new HexModel(signTx), walletType);
     }
 }

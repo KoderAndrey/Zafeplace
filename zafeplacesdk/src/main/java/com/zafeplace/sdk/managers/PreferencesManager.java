@@ -22,27 +22,27 @@ public class PreferencesManager {
     private final static String AUTH_TYPE_PREF_KEY = "auth_type_pref_key";
     private final static String PIN_CODE_PREF_KEY = "pin_code_pref_key";
 
-    public static void setAuthToken(String token, Context context) {
+    public void setAuthToken(String token, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putString(ACCESS_TOKEN_PREF_KEY, token).apply();
     }
 
-    public static String getAuthToken(Context context) {
+    public String getAuthToken(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getString(ACCESS_TOKEN_PREF_KEY, null);
     }
 
-    public static void setIsLoggedIn(boolean isLoggedIn, Context context) {
+    public void setIsLoggedIn(boolean isLoggedIn, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putBoolean(IS_LOGGED_IN_PREF_KEY, isLoggedIn).apply();
     }
 
-    public static boolean isLoggedIn(Context context) {
+    public boolean isLoggedIn(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getBoolean(IS_LOGGED_IN_PREF_KEY, false);
     }
 
-    public static void setEthWallet(String privateKey, String address, Context context) {
+    public void setEthWallet(String privateKey, String address, Context context) {
         EthWallet ethWallet = new EthWallet();
         ethWallet.setPrivateKey(encryption(ZAFEPLACE_PASSWORD,privateKey));
         ethWallet.setAddress(encryption(ZAFEPLACE_PASSWORD,address));
@@ -51,7 +51,7 @@ public class PreferencesManager {
         prefs.edit().putString(ETH_WALLET_PREF_KEY, userString).apply();
     }
 
-    public static EthWallet getEthWallet(Context context) {
+    public EthWallet getEthWallet(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String wallet = prefs.getString(ETH_WALLET_PREF_KEY, null);
         EthWallet ethWallet = new Gson().fromJson(wallet, EthWallet.class);
@@ -60,27 +60,27 @@ public class PreferencesManager {
         return ethWallet;
     }
 
-    public static void setAuthType(int authType, Context context) {
+    public void setAuthType(int authType, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putInt(AUTH_TYPE_PREF_KEY, authType).apply();
     }
 
-    public static int getAuthType(Context context) {
+    public int getAuthType(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getInt(AUTH_TYPE_PREF_KEY, -1);
     }
 
-    public static void setPinCode(String pinCode, Context context) {
+    public void setPinCode(String pinCode, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putString(PIN_CODE_PREF_KEY, pinCode).apply();
     }
 
-    public static String getPinCode(Context context) {
+    public String getPinCode(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         return prefs.getString(PIN_CODE_PREF_KEY, null);
     }
 
-    public static void setUserData(String firstName, String secondName, String email, String additionalData,Context context) {
+    public void setUserData(String firstName, String secondName, String email, String additionalData,Context context) {
         User user = new User();
         user.setFirstName(encryption(ZAFEPLACE_PASSWORD,firstName));
         user.setSecondName(encryption(ZAFEPLACE_PASSWORD,secondName));
@@ -92,7 +92,7 @@ public class PreferencesManager {
         prefs.edit().putString(USER_PREF_KEY, userString).apply();
     }
 
-    public static User getUserData(Context context) {
+    public User getUserData(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String wallet = prefs.getString(USER_PREF_KEY, null);
         User user = new Gson().fromJson(wallet, User.class);

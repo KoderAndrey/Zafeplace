@@ -1,7 +1,12 @@
 package com.zafeplace.sdk.callbacks;
 
 public interface OnMakeTransaction {
-    void OnSuccessTransaction(String res);
 
-    void OnErrorTransaction(String error);
+    void onStartTransaction();
+
+    void onBreakTransaction();
+
+    void onSuccessTransaction(String res);
+
+    void onErrorTransaction(String error);
 }

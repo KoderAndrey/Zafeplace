@@ -1,36 +1,30 @@
 package com.zafeplace.sdk.utils;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.hardware.fingerprint.FingerprintManager;
-import android.os.Build;
-import android.os.CancellationSignal;
-import android.support.annotation.RequiresApi;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
-import android.widget.TextView;
-import android.widget.Toast;
 
-import com.zafeplace.sdk.R;
+import com.zafeplace.sdk.managers.PreferencesManager;
 
 import static com.zafeplace.sdk.Constants.AuthType.FINGERPRINT_AUTH;
-import static com.zafeplace.sdk.managers.PreferencesManager.setAuthType;
-import static com.zafeplace.sdk.managers.PreferencesManager.setIsLoggedIn;
+
 
 public class FingerprintHandler extends FingerprintManagerCompat.AuthenticationCallback {
 
+    private PreferencesManager mManager;
     private Context context;
     private FingerprintAuthenticationCallback fingerprintAuthenticationCallback;
 
-    public interface FingerprintAuthenticationCallback{
-        void onResponse(String message,boolean isSuccess);
+    public interface FingerprintAuthenticationCallback {
+        void onResponse(String message, boolean isSuccess);
     }
-    public FingerprintHandler(Context context,FingerprintAuthenticationCallback fingerprintAuthenticationCallback) {
+
+    public FingerprintHandler(Context context, FingerprintAuthenticationCallback fingerprintAuthenticationCallback) {
         this.context = context;
         this.fingerprintAuthenticationCallback = fingerprintAuthenticationCallback;
+        mManager = new PreferencesManager();
     }
 
     public void startAuth(FingerprintManagerCompat manager, FingerprintManagerCompat.CryptoObject cryptoObject) {
@@ -38,7 +32,7 @@ public class FingerprintHandler extends FingerprintManagerCompat.AuthenticationC
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        manager.authenticate(cryptoObject, 0, cancellationSignal,this, null);
+        manager.authenticate(cryptoObject, 0, cancellationSignal, this, null);
     }
 
 
@@ -66,11 +60,11 @@ public class FingerprintHandler extends FingerprintManagerCompat.AuthenticationC
     }
 
 
-    public void update(String e, Boolean success){
-        if(success){
-            setIsLoggedIn(true, context);
-            setAuthType(FINGERPRINT_AUTH, context);
+    public void update(String e, Boolean success) {
+        if (success) {
+            mManager.setIsLoggedIn(true, context);
+            mManager.setAuthType(FINGERPRINT_AUTH, context);
         }
-        fingerprintAuthenticationCallback.onResponse(e,success);
+        fingerprintAuthenticationCallback.onResponse(e, success);
     }
 }

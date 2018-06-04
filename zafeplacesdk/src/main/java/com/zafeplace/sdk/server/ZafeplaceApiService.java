@@ -1,5 +1,6 @@
 package com.zafeplace.sdk.server;
 
+import com.google.gson.JsonObject;
 import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.ErrorTransaction;
 import com.zafeplace.sdk.server.models.HexModel;
@@ -22,7 +23,7 @@ public interface ZafeplaceApiService {
     String ZAFEPLACE_BASE_URL = "http://35.233.100.41:3000/";
 
     @GET("/app/session/login")
-    Call<LoginResponse> getAccessToken(@Query("packageName") String packageName,
+    Call<LoginResponse> getAccessToken(@Query("appId") String appId,
                                        @Query("appSecret") String appSecret);
 
     @GET("/app/{network}/account/balance")
@@ -45,5 +46,5 @@ public interface ZafeplaceApiService {
 
     @Headers("Content-Type: application/json")
     @POST("/app/{network}/account/send-tx")
-    Call<ErrorTransaction> doTransaction(@Body HexModel hexModel, @Path("network") String walletType);
+    Call<JsonObject> doTransaction(@Body HexModel hexModel, @Path("network") String walletType);
 }
