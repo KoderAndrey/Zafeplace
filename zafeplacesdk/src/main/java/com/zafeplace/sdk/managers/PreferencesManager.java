@@ -44,19 +44,21 @@ public class PreferencesManager {
 
     public void setEthWallet(String privateKey, String address, Context context) {
         EthWallet ethWallet = new EthWallet();
-        ethWallet.setPrivateKey(encryption(ZAFEPLACE_PASSWORD,privateKey));
-        ethWallet.setAddress(encryption(ZAFEPLACE_PASSWORD,address));
+        ethWallet.setPrivateKey(encryption(ZAFEPLACE_PASSWORD, privateKey));
+        ethWallet.setAddress(encryption(ZAFEPLACE_PASSWORD, address));
         String userString = new Gson().toJson(ethWallet);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         prefs.edit().putString(ETH_WALLET_PREF_KEY, userString).apply();
     }
 
     public EthWallet getEthWallet(Context context) {
+
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String wallet = prefs.getString(ETH_WALLET_PREF_KEY, null);
         EthWallet ethWallet = new Gson().fromJson(wallet, EthWallet.class);
-        ethWallet.setPrivateKey(decryption(ZAFEPLACE_PASSWORD,ethWallet.getPrivateKey()));
-        ethWallet.setAddress(decryption(ZAFEPLACE_PASSWORD,ethWallet.getAddress()));
+        if (ethWallet == null) return null;
+        ethWallet.setPrivateKey(decryption(ZAFEPLACE_PASSWORD, ethWallet.getPrivateKey()));
+        ethWallet.setAddress(decryption(ZAFEPLACE_PASSWORD, ethWallet.getAddress()));
         return ethWallet;
     }
 
@@ -80,12 +82,12 @@ public class PreferencesManager {
         return prefs.getString(PIN_CODE_PREF_KEY, null);
     }
 
-    public void setUserData(String firstName, String secondName, String email, String additionalData,Context context) {
+    public void setUserData(String firstName, String secondName, String email, String additionalData, Context context) {
         User user = new User();
-        user.setFirstName(encryption(ZAFEPLACE_PASSWORD,firstName));
-        user.setSecondName(encryption(ZAFEPLACE_PASSWORD,secondName));
-        user.setEmail(encryption(ZAFEPLACE_PASSWORD,email));
-        user.setAdditionalData(encryption(ZAFEPLACE_PASSWORD,additionalData));
+        user.setFirstName(encryption(ZAFEPLACE_PASSWORD, firstName));
+        user.setSecondName(encryption(ZAFEPLACE_PASSWORD, secondName));
+        user.setEmail(encryption(ZAFEPLACE_PASSWORD, email));
+        user.setAdditionalData(encryption(ZAFEPLACE_PASSWORD, additionalData));
         user.setValidationTime(System.currentTimeMillis());
         String userString = new Gson().toJson(user);
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
@@ -96,10 +98,10 @@ public class PreferencesManager {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String wallet = prefs.getString(USER_PREF_KEY, null);
         User user = new Gson().fromJson(wallet, User.class);
-        user.setFirstName(decryption(ZAFEPLACE_PASSWORD,user.getFirstName()));
-        user.setSecondName(decryption(ZAFEPLACE_PASSWORD,user.getSecondName()));
-        user.setEmail(decryption(ZAFEPLACE_PASSWORD,user.getEmail()));
-        user.setAdditionalData(decryption(ZAFEPLACE_PASSWORD,user.getAdditionalData()));
+        user.setFirstName(decryption(ZAFEPLACE_PASSWORD, user.getFirstName()));
+        user.setSecondName(decryption(ZAFEPLACE_PASSWORD, user.getSecondName()));
+        user.setEmail(decryption(ZAFEPLACE_PASSWORD, user.getEmail()));
+        user.setAdditionalData(decryption(ZAFEPLACE_PASSWORD, user.getAdditionalData()));
         return user;
     }
 }

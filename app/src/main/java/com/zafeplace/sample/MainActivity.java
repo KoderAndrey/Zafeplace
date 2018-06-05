@@ -29,7 +29,6 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         mZafeplace = Zafeplace.getInstance(this);
     }
 
-
     @Override
     public void onStartGenerate() {
         mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
@@ -43,8 +42,23 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
 
     @Override
     public void onErrorGenerate(String error) {
-        mLoadingDialogFragment.dismiss();
         Toast.makeText(this, "Error generate wallet " + error, Toast.LENGTH_SHORT).show();
+        new Thread(){
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(200);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLoadingDialogFragment.dismiss();
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
     @Override
@@ -104,7 +118,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     public void getWalletBalance(View view) {
-        if (mZafeplace.getWallet(ETH_WALLET).getAddress() != null) {
+        if (mZafeplace.isIdentityExist(ETH_WALLET)) {
             mZafeplace.getWalletBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), this);
             mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
         } else {
@@ -113,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     public void getTokenBalance(View view) {
-        if (mZafeplace.getWallet(ETH_WALLET).getAddress() != null) {
+        if (mZafeplace.isIdentityExist(ETH_WALLET)) {
             mZafeplace.getTokenBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), this);
             mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
         } else {
@@ -122,7 +136,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     public void createTransaction(View view) {
-        if (mZafeplace.getWallet(ETH_WALLET).getAddress() != null) {
+        if (mZafeplace.isIdentityExist(ETH_WALLET)) {
             mZafeplace.createTransaction(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(),
                     "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 0.1, this);
         } else {
@@ -131,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     public void createTokenTransaction(View view) {
-        if (mZafeplace.getWallet(ETH_WALLET).getAddress() != null) {
+        if (mZafeplace.isIdentityExist(ETH_WALLET)) {
             mZafeplace.createTransactionToken(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(),
                     "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 10, this);
         } else {

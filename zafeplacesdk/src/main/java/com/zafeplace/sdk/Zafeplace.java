@@ -44,11 +44,11 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
+import static com.zafeplace.sdk.Constants.AuthType.FINGERPRINT_AUTH;
 import static com.zafeplace.sdk.Constants.AuthType.PIN_AUTH;
 import static com.zafeplace.sdk.Constants.ETH_SERVICE_URL;
 import static com.zafeplace.sdk.Constants.WalletType.ETH;
@@ -65,6 +65,7 @@ public class Zafeplace {
     private EditText mInput;
     private PreferencesManager mManager;
     private ExecutorService mExecutor;
+    private AlertDialog mAlert = null;
 
     public enum WalletTypes {
         ETH_WALLET;
@@ -149,7 +150,7 @@ public class Zafeplace {
 
     public void createTransaction(WalletTypes walletType, String addressSender, String addressRecipient, double amount,
                                   final OnMakeTransaction onMakeTransaction) {
-        checkPinCoinTransaction(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
+        checkLoginCoinTransaction(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
     }
 
     private void makeTransaction(WalletTypes walletType, String addressSender, String addressRecipient, double amount,
@@ -244,7 +245,7 @@ public class Zafeplace {
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 try {
                     ParseUtils.transactionMessage(response.body());
-                    onMakeTransaction.onSuccessTransaction( ParseUtils.transactionMessage(response.body()));
+                    onMakeTransaction.onSuccessTransaction(ParseUtils.transactionMessage(response.body()));
                 } catch (Exception e) {
                     e.printStackTrace();
                     onMakeTransaction.onErrorTransaction(e.getMessage());
@@ -273,7 +274,7 @@ public class Zafeplace {
     public void generateWallet(WalletTypes walletType, OnWalletGenerateListener onWalletGenerateListener) {
         switch (walletType) {
             case ETH_WALLET:
-                checkPinGenerateEthWallet(onWalletGenerateListener);
+                checkLoginGenerateEthWallet(onWalletGenerateListener);
         }
     }
 
@@ -363,87 +364,181 @@ public class Zafeplace {
         mManager.setIsLoggedIn(false, mActivity);
     }
 
-    public void checkPinGenerateEthWallet(final OnWalletGenerateListener onWalletGenerateListener) {
-        mInput = new EditText(mActivity);
-        mInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT);
-        mInput.setLayoutParams(lp);
+    private void checkLoginGenerateEthWallet(final OnWalletGenerateListener onWalletGenerateListener) {
+        String title = "";
+        String titleButton = "";
         final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
-                R.style.SimpleDialogTheme)).setTitle("Input Pin Code").setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                R.style.SimpleDialogTheme));
+        builder.setCancelable(true);
+        switch (getAuthType()) {
+            case FINGERPRINT_AUTH:
+                title = "Please use fingerprint for authorization";
+                titleButton = "Cancel";
+                fingerprintLogin(new FingerprintHandler.FingerprintAuthenticationCallback() {
+                    @Override
+                    public void onResponse(String message, boolean isSuccess) {
+                        if (isSuccess) {
+                            closeDialog();
+                            generateEthWallet(onWalletGenerateListener);
+                            onWalletGenerateListener.onStartGenerate();
+                        } else {
+                            Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+                break;
+            case PIN_AUTH:
+                title = "Input Pin Code";
+                titleButton = "OK";
+                mInput = new EditText(mActivity);
+                mInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT);
+                mInput.setLayoutParams(lp);
+                builder.setView(mInput);
+                break;
+        }
+        builder.setTitle(title).setNeutralButton(titleButton, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (mInput.getText().toString().equals(getPinCode())) {
-                    generateEthWallet(onWalletGenerateListener);
-                    onWalletGenerateListener.onStartGenerate();
-                } else {
-                    Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
+                switch (getAuthType()) {
+                    case PIN_AUTH: {
+                        if (mInput.getText().toString().equals(getPinCode())) {
+                            generateEthWallet(onWalletGenerateListener);
+                            onWalletGenerateListener.onStartGenerate();
+                        } else {
+                            Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    break;
+                    case FINGERPRINT_AUTH:
+
+                        break;
+                }
+            }
+        });
+
+        mAlert = builder.show();
+    }
+
+    private void closeDialog() {
+        mAlert.dismiss();
+    }
+
+    private void checkLoginCoinTransaction(final WalletTypes walletType, final String addressSender, final String addressRecipient, final double amount,
+                                           final OnMakeTransaction onMakeTransaction) {
+        String title = "";
+        String titleButton = "";
+        final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
+                R.style.SimpleDialogTheme));
+        switch (getAuthType()) {
+            case FINGERPRINT_AUTH:
+                title = "Please use fingerprint for authorization";
+                titleButton = "Cancel";
+                fingerprintLogin(new FingerprintHandler.FingerprintAuthenticationCallback() {
+                    @Override
+                    public void onResponse(String message, boolean isSuccess) {
+                        if (isSuccess) {
+                            closeDialog();
+                            onMakeTransaction.onStartTransaction();
+                            makeTransaction(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
+                        } else {
+                            Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+                break;
+            case PIN_AUTH:
+                title = "Input Pin Code";
+                titleButton = "OK";
+                mInput = new EditText(mActivity);
+                mInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT);
+                mInput.setLayoutParams(lp);
+                builder.setView(mInput);
+                break;
+        }
+        builder.setTitle(title).setNeutralButton(titleButton, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (getAuthType()) {
+                    case PIN_AUTH: {
+                        if (mInput.getText().toString().equals(getPinCode())) {
+                            onMakeTransaction.onStartTransaction();
+                            makeTransaction(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
+                        } else {
+                            Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    break;
+                    case FINGERPRINT_AUTH:
+
+                        break;
                 }
             }
         });
         builder.setView(mInput);
-        try {
-            builder.show();
-        } catch (WindowManager.BadTokenException e) {
-            e.printStackTrace();
-        }
+        mAlert = builder.show();
     }
 
-    public void checkPinCoinTransaction(final WalletTypes walletType, final String addressSender, final String addressRecipient, final double amount,
-                                        final OnMakeTransaction onMakeTransaction) {
-        mInput = new EditText(mActivity);
-        mInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT);
-        mInput.setLayoutParams(lp);
+    private void checkPinTokenTransaction(final WalletTypes walletType, final String addressSender, final String addressRecipient, final int amount,
+                                          final OnMakeTransaction onMakeTransaction) {
+        String title = "";
+        String titleButton = "";
         final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
-                R.style.SimpleDialogTheme)).setTitle("Input Pin Code").setNeutralButton("OK", new DialogInterface.OnClickListener() {
+                R.style.SimpleDialogTheme));
+        switch (getAuthType()) {
+            case FINGERPRINT_AUTH:
+                title = "Please use fingerprint for authorization";
+                titleButton = "Cancel";
+                fingerprintLogin(new FingerprintHandler.FingerprintAuthenticationCallback() {
+                    @Override
+                    public void onResponse(String message, boolean isSuccess) {
+                        if (isSuccess) {
+                            closeDialog();
+                            onMakeTransaction.onStartTransaction();
+                            makeTransactionToken(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
+                        } else {
+                            Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+                break;
+            case PIN_AUTH:
+                title = "Input Pin Code";
+                titleButton = "OK";
+                mInput = new EditText(mActivity);
+                mInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT);
+                mInput.setLayoutParams(lp);
+                builder.setView(mInput);
+                break;
+        }
+        builder.setTitle(title).setNeutralButton(titleButton, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                if (mInput.getText().toString().equals(getPinCode())) {
-                    onMakeTransaction.onStartTransaction();
-                    makeTransaction(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
-                } else {
-                    Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
+                switch (getAuthType()) {
+                    case PIN_AUTH: {
+                        if (mInput.getText().toString().equals(getPinCode())) {
+                            onMakeTransaction.onStartTransaction();
+                            makeTransactionToken(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
+                        } else {
+                            Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                    break;
+                    case FINGERPRINT_AUTH:
+
+                        break;
                 }
             }
         });
         builder.setView(mInput);
-        try {
-            builder.show();
-        } catch (WindowManager.BadTokenException e) {
-            e.printStackTrace();
-        }
+        mAlert =  builder.show();
     }
-
-    public void checkPinTokenTransaction(final WalletTypes walletType, final String addressSender, final String addressRecipient, final int amount,
-                                         final OnMakeTransaction onMakeTransaction) {
-        mInput = new EditText(mActivity);
-        mInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT);
-        mInput.setLayoutParams(lp);
-        final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
-                R.style.SimpleDialogTheme)).setTitle("Input Pin Code").setNeutralButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                if (mInput.getText().toString().equals(getPinCode())) {
-                    onMakeTransaction.onStartTransaction();
-                    makeTransactionToken(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
-                } else {
-                    Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        builder.setView(mInput);
-        try {
-            builder.show();
-        } catch (WindowManager.BadTokenException e) {
-            e.printStackTrace();
-        }
-    }
-
 }

@@ -61,15 +61,14 @@ public class LoginActivity extends AppCompatActivity {
         if (!pinCodeEditText.getText().toString().isEmpty()) {
             if (mIsRegistrtation) {
                 mZafeplace.pinCodeLogin(pinCodeEditText.getText().toString());
-                checkAccessToken();
+                checkAccessToken(true);
             } else {
                 if (pinCodeEditText.getText().toString().equals(mZafeplace.getPinCode())) {
-                    checkAccessToken();
+                    checkAccessToken(true);
                 } else {
                     Toast.makeText(this, "Incorrect Pin Code", Toast.LENGTH_SHORT).show();
                 }
             }
-
         }
     }
 
@@ -88,6 +87,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private void initUI() {
         if (mAuthType == FINGERPRINT_AUTH) {
+            checkAccessToken(false);
             textView.setVisibility(View.VISIBLE);
             button.setVisibility(View.GONE);
             pinCodeEditText.setVisibility(View.GONE);
@@ -108,7 +108,7 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-    private void checkAccessToken() {
+    private void checkAccessToken(final boolean goMain) {
         if (mZafeplace.getAccessToken() == null) {
             final LoadingDialogFragment loadingDialogFragment = LoadingDialogFragment.newInstance();
             loadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
@@ -118,7 +118,9 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onGetToken(String response) {
                             loadingDialogFragment.dismiss();
-                            MainActivity.start(LoginActivity.this);
+                            if (goMain) {
+                                MainActivity.start(LoginActivity.this);
+                            }
                         }
 
                         @Override
@@ -128,7 +130,9 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
         } else {
-            MainActivity.start(LoginActivity.this);
+            if (goMain) {
+                MainActivity.start(LoginActivity.this);
+            }
         }
     }
 }

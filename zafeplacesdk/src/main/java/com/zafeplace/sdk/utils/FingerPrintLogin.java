@@ -68,7 +68,6 @@ public class FingerPrintLogin {
                         fingerprintAuthenticationCallback.onResponse(context.getString(R.string.lock_screen_security_not_enabled_in_settings),false);
                     }else{
                         generateKey();
-
                         if (cipherInit()) {
                             FingerprintManagerCompat.CryptoObject cryptoObject = new FingerprintManagerCompat.CryptoObject(cipher);
                             FingerprintHandler helper = new FingerprintHandler(context,fingerprintAuthenticationCallback);
