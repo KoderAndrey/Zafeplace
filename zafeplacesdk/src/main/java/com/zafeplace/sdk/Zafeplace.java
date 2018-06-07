@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -19,13 +20,18 @@ import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
+import com.zafeplace.sdk.callbacks.OnSmartContractRaw;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import com.zafeplace.sdk.managers.PreferencesManager;
 import com.zafeplace.sdk.models.EthWallet;
 import com.zafeplace.sdk.models.Wallet;
 import com.zafeplace.sdk.server.ZafeplaceApi;
+import com.zafeplace.sdk.server.models.Abi;
 import com.zafeplace.sdk.server.models.BalanceModel;
+import com.zafeplace.sdk.server.models.Input;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.Output;
+import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
@@ -66,6 +72,9 @@ public class Zafeplace {
     private PreferencesManager mManager;
     private ExecutorService mExecutor;
     private AlertDialog mAlert = null;
+    private FingerPrintLogin mFingerPrintLogin;
+    private static String smart_contract = "smart_contract";
+    private boolean mIsCancelClicked;
 
     public enum WalletTypes {
         ETH_WALLET;
@@ -104,13 +113,13 @@ public class Zafeplace {
                     mManager.setAuthToken(tok, mActivity);
                 } else {
                     String err = response.message();
-                    onAccessTokenListener.onErrorToken(err);
+                    onAccessTokenListener.onErrorToken(new Throwable(err));
                 }
             }
 
             @Override
             public void onFailure(Call<LoginResponse> call, Throwable t) {
-                onAccessTokenListener.onErrorToken(t.getMessage());
+                onAccessTokenListener.onErrorToken(t);
             }
         });
     }
@@ -129,7 +138,7 @@ public class Zafeplace {
 
             @Override
             public void onFailure(Call<BalanceModel> call, Throwable t) {
-                onGetWalletBalance.onErrorWalletBalance(t.getMessage());
+                onGetWalletBalance.onErrorWalletBalance(t);
             }
         });
     }
@@ -143,7 +152,52 @@ public class Zafeplace {
 
             @Override
             public void onFailure(Call<BalanceModel> call, Throwable t) {
-                onGetTokenBalance.onErrorTokenBalance(t.getMessage());
+                onGetTokenBalance.onErrorTokenBalance(t);
+            }
+        });
+    }
+
+    public void getSmartContractTransactionRaw(final WalletTypes walletType, final OnSmartContractRaw onSmartContractRaw) {
+        ZafeplaceApi.getInstance(mActivity).getSmartContractRaw(getWalletName(walletType)).enqueue(new Callback<SmartContractTransactionRaw>() {
+            @Override
+            public void onResponse(Call<SmartContractTransactionRaw> call, Response<SmartContractTransactionRaw> response) {
+                Log.wtf(smart_contract, "wallet type " + getWalletName(walletType));
+                try {
+                    SmartContractTransactionRaw mes = response.body();
+                    onSmartContractRaw.onGetSmartContractRaw("Success!");
+                    Log.wtf(smart_contract, "---------------------------------");
+                    Log.wtf(smart_contract, "body trans address = " + mes.address + " size abi " + mes.abi.size() + " element " + mes.abi.get(0).toString());
+                    for (Abi abi : mes.abi) {
+                        if (abi != null) {
+                            Log.wtf(smart_contract, "===========================================");
+                            Log.wtf(smart_contract, "abi " + abi.toString());
+                            if (abi.inputs != null) {
+                                for (Input input : abi.inputs) {
+                                    Log.wtf(smart_contract, "input " + input.toString());
+                                }
+                            }
+                            Log.wtf(smart_contract, "---------------------------------");
+                            if (abi.outputs != null) {
+                                for (Output output : abi.outputs) {
+                                    Log.wtf(smart_contract, "output " + output.toString());
+                                }
+                            }
+                            Log.wtf(smart_contract, "===========================================");
+                        }
+                    }
+                } catch (Exception e) {
+                    onSmartContractRaw.onErrorSmartRaw(e);
+                    Log.wtf(smart_contract, "Exception " + e.getMessage());
+                    for (StackTraceElement element : e.getStackTrace()) {
+                        Log.wtf(smart_contract, "trace " + element.getClassName() + " " + element.getLineNumber());
+                    }
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(Call<SmartContractTransactionRaw> call, Throwable t) {
+                onSmartContractRaw.onErrorSmartRaw(t);
             }
         });
     }
@@ -159,6 +213,7 @@ public class Zafeplace {
             @Override
             public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
                 TransactionRaw raw = response.body();
+                Log.wtf("asdasda", "" + raw.getRawTx().toString() + " " + raw.getRawTx().getTo());
                 Credentials credentials = Credentials.create(mManager.getEthWallet(mActivity).getPrivateKey());
                 RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.getRawTx().getNonce(), raw.getRawTx().getGasPrice(),
                         raw.getRawTx().getGasLimit(), raw.getRawTx().getTo(), raw.getRawTx().getValue());
@@ -244,25 +299,31 @@ public class Zafeplace {
             @Override
             public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
                 try {
-                    ParseUtils.transactionMessage(response.body());
                     onMakeTransaction.onSuccessTransaction(ParseUtils.transactionMessage(response.body()));
                 } catch (Exception e) {
                     e.printStackTrace();
-                    onMakeTransaction.onErrorTransaction(e.getMessage());
+                    onMakeTransaction.onErrorTransaction(e);
                 }
             }
 
             @Override
             public void onFailure(Call<JsonObject> call, Throwable t) {
-                onMakeTransaction.onErrorTransaction(t.getMessage());
+                onMakeTransaction.onErrorTransaction(t);
             }
         });
     }
 
     public void fingerprintLogin(FingerprintHandler.FingerprintAuthenticationCallback fingerprintAuthenticationCallback) {
-        FingerPrintLogin fingerPrintLogin = new FingerPrintLogin(mActivity, fingerprintAuthenticationCallback);
-        fingerPrintLogin.initAuth();
+        mFingerPrintLogin = new FingerPrintLogin(mActivity, fingerprintAuthenticationCallback);
+        mFingerPrintLogin.initAuth();
     }
+
+    public void cancelFingerprintLogin() {
+        if (mFingerPrintLogin != null) {
+            mFingerPrintLogin.stopAuth();
+        }
+    }
+
 
     public void pinCodeLogin(String code) {
         mManager.setIsLoggedIn(true, mActivity);
@@ -382,7 +443,11 @@ public class Zafeplace {
                             generateEthWallet(onWalletGenerateListener);
                             onWalletGenerateListener.onStartGenerate();
                         } else {
-                            Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                            if (!mIsCancelClicked) {
+                                Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                mIsCancelClicked = false;
+                            }
                         }
                     }
                 });
@@ -413,7 +478,8 @@ public class Zafeplace {
                     }
                     break;
                     case FINGERPRINT_AUTH:
-
+                        mIsCancelClicked = true;
+                        cancelFingerprintLogin();
                         break;
                 }
             }
@@ -444,7 +510,11 @@ public class Zafeplace {
                             onMakeTransaction.onStartTransaction();
                             makeTransaction(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
                         } else {
-                            Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                            if (!mIsCancelClicked) {
+                                Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                mIsCancelClicked = false;
+                            }
                         }
                     }
                 });
@@ -475,7 +545,8 @@ public class Zafeplace {
                     }
                     break;
                     case FINGERPRINT_AUTH:
-
+                        mIsCancelClicked = true;
+                        cancelFingerprintLogin();
                         break;
                 }
             }
@@ -502,7 +573,11 @@ public class Zafeplace {
                             onMakeTransaction.onStartTransaction();
                             makeTransactionToken(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
                         } else {
-                            Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                            if (!mIsCancelClicked) {
+                                Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                            } else {
+                                mIsCancelClicked = false;
+                            }
                         }
                     }
                 });
@@ -533,12 +608,13 @@ public class Zafeplace {
                     }
                     break;
                     case FINGERPRINT_AUTH:
-
+                        mIsCancelClicked = true;
+                        cancelFingerprintLogin();
                         break;
                 }
             }
         });
         builder.setView(mInput);
-        mAlert =  builder.show();
+        mAlert = builder.show();
     }
 }

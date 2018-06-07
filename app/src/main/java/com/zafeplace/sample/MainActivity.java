@@ -11,12 +11,13 @@ import com.zafeplace.sdk.Zafeplace;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
+import com.zafeplace.sdk.callbacks.OnSmartContractRaw;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 
 import static com.zafeplace.sdk.Zafeplace.WalletTypes.ETH_WALLET;
 
 public class MainActivity extends AppCompatActivity implements OnWalletGenerateListener, OnGetWalletBalance,
-        OnGetTokenBalance, OnMakeTransaction {
+        OnGetTokenBalance, OnMakeTransaction, OnSmartContractRaw {
     public static String TAG = "TAG";
     private Zafeplace mZafeplace;
     private LoadingDialogFragment mLoadingDialogFragment;
@@ -27,6 +28,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         setContentView(R.layout.activity_main);
         mLoadingDialogFragment = LoadingDialogFragment.newInstance();
         mZafeplace = Zafeplace.getInstance(this);
+        mZafeplace.getSmartContractTransactionRaw(ETH_WALLET, this);
     }
 
     @Override
@@ -43,7 +45,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     @Override
     public void onErrorGenerate(String error) {
         Toast.makeText(this, "Error generate wallet " + error, Toast.LENGTH_SHORT).show();
-        new Thread(){
+        new Thread() {
             @Override
             public void run() {
                 try {
@@ -68,9 +70,9 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     @Override
-    public void onErrorWalletBalance(String error) {
+    public void onErrorWalletBalance(Throwable error) {
         mLoadingDialogFragment.dismiss();
-        Toast.makeText(this, "Error Wallet Balans " + error, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Error Wallet Balans " + error.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -80,9 +82,9 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     @Override
-    public void onErrorTokenBalance(String error) {
+    public void onErrorTokenBalance(Throwable error) {
         mLoadingDialogFragment.dismiss();
-        Toast.makeText(this, "Error Token Balan " + error, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Error Token Balan " + error.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -102,9 +104,9 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     @Override
-    public void onErrorTransaction(String error) {
+    public void onErrorTransaction(Throwable error) {
         mLoadingDialogFragment.dismiss();
-        Toast.makeText(this, "Error transaction " + error, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Error transaction " + error.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
 
@@ -159,4 +161,16 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         starter.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(starter);
     }
+
+    @Override
+    public void onGetSmartContractRaw(String response) {
+        Toast.makeText(this, "body smart contract " + response, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onErrorSmartRaw(Throwable error) {
+        Toast.makeText(this, "body smart contract error " + error.getMessage(), Toast.LENGTH_SHORT).show();
+    }
 }
+//        "packageName": "com.zafeplace.sample",
+//        "appSecret": "756496e0a7d900ade56913cc098749ee"

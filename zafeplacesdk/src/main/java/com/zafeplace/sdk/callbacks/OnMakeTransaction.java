@@ -8,5 +8,5 @@ public interface OnMakeTransaction {
 
     void onSuccessTransaction(String res);
 
-    void onErrorTransaction(String error);
+    void onErrorTransaction(Throwable error);
 }

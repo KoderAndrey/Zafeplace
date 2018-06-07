@@ -9,6 +9,7 @@
     <EditText
         android:id="@+id/editText"
         android:layout_width="150dp"
+        android:inputType="textPassword"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

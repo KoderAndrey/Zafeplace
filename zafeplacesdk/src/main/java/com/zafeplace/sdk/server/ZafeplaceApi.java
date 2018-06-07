@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
 import okhttp3.OkHttpClient;
@@ -61,6 +62,10 @@ public class ZafeplaceApi {
 
     public Call<TransactionRaw> getTokenTransactionRaw(String walletType, String addressSender, String addressRecipient, int amount) {
         return service.getTokenTransactionRaw(walletType, addressSender, addressRecipient, amount);
+    }
+
+    public Call<SmartContractTransactionRaw> getSmartContractRaw(String walletType) {
+        return service.getTransactionSmart(walletType);
     }
 
     public Call<JsonObject> doTransaction(String signTx, String walletType) {

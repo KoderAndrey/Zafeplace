@@ -1,12 +1,9 @@
 package com.zafeplace.sample;
 
-import android.app.FragmentManager;
-import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -124,9 +121,9 @@ public class LoginActivity extends AppCompatActivity {
                         }
 
                         @Override
-                        public void onErrorToken(String error) {
+                        public void onErrorToken(Throwable error) {
                             loadingDialogFragment.dismiss();
-                            Toast.makeText(LoginActivity.this, "Error take token " + error, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(LoginActivity.this, "Error take token " + error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
         } else {

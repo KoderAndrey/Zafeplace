@@ -3,5 +3,5 @@ package com.zafeplace.sdk.callbacks;
 public interface OnGetWalletBalance {
     void onWalletBalance(String balans);
 
-    void onErrorWalletBalance(String error);
+    void onErrorWalletBalance(Throwable error);
 }

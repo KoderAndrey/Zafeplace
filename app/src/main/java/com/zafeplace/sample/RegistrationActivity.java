@@ -1,7 +1,10 @@
 package com.zafeplace.sample;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.hardware.fingerprint.FingerprintManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -50,6 +53,7 @@ public class RegistrationActivity extends AppCompatActivity {
     }
 
     private void checkPermissionWriteExternalStorage() {
+
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
                     REQUEST_WRITE_EXTERNAL_STORAGE);
@@ -60,12 +64,24 @@ public class RegistrationActivity extends AppCompatActivity {
 
 
     private void checkPermissionWriteExternalStorageAndFingerPrint() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
-                || ActivityCompat.checkSelfPermission(this, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.USE_FINGERPRINT},
-                    REQUEST_FINGER_PRINT_EXTERNAL);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            FingerprintManager fingerprintManager = (FingerprintManager) getSystemService(Context.FINGERPRINT_SERVICE);
+            if (!fingerprintManager.isHardwareDetected()) {
+                Toast.makeText(this, "Device don't support fingerprint", Toast.LENGTH_SHORT).show();
+            } else if (!fingerprintManager.hasEnrolledFingerprints()) {
+                // User hasn't enrolled any fingerprints to authenticate with
+                Toast.makeText(this, "You don't have any fingerprints to authenticate", Toast.LENGTH_SHORT).show();
+            } else {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+                        || ActivityCompat.checkSelfPermission(this, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.USE_FINGERPRINT},
+                            REQUEST_FINGER_PRINT_EXTERNAL);
+                } else {
+                    LoginActivity.start(this, FINGERPRINT_AUTH, true);
+                }
+            }
         } else {
-            LoginActivity.start(this, FINGERPRINT_AUTH, true);
+            Toast.makeText(this, "Device don't support fingerprint", Toast.LENGTH_SHORT).show();
         }
     }
 

@@ -8,10 +8,10 @@
 
 
     <Button
-        android:layout_marginTop="40dp"
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
         android:onClick="generateWallet"
         android:text="generate wallet"
         app:layout_constraintEnd_toEndOf="parent"
@@ -22,6 +22,7 @@
         android:id="@+id/button3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:onClick="getWalletBalance"
         android:text="get Wallet Balance"
         app:layout_constraintEnd_toEndOf="parent"
@@ -32,6 +33,7 @@
         android:id="@+id/button4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:onClick="getTokenBalance"
         android:text="get Token Balance"
         app:layout_constraintEnd_toEndOf="parent"
@@ -42,6 +44,7 @@
         android:id="@+id/button5"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
         android:onClick="createTransaction"
         android:text="create transaction"
         app:layout_constraintEnd_toEndOf="parent"
@@ -49,6 +52,7 @@
         app:layout_constraintTop_toBottomOf="@+id/button4" />
 
     <Button
+        android:layout_marginTop="10dp"
         android:id="@+id/button6"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"

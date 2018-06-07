@@ -16,7 +16,7 @@ public class FingerprintHandler extends FingerprintManagerCompat.AuthenticationC
     private PreferencesManager mManager;
     private Context context;
     private FingerprintAuthenticationCallback fingerprintAuthenticationCallback;
-
+    private android.support.v4.os.CancellationSignal mCancellationSignal;
     public interface FingerprintAuthenticationCallback {
         void onResponse(String message, boolean isSuccess);
     }
@@ -28,11 +28,18 @@ public class FingerprintHandler extends FingerprintManagerCompat.AuthenticationC
     }
 
     public void startAuth(FingerprintManagerCompat manager, FingerprintManagerCompat.CryptoObject cryptoObject) {
-        android.support.v4.os.CancellationSignal cancellationSignal = new android.support.v4.os.CancellationSignal();
+        mCancellationSignal = new android.support.v4.os.CancellationSignal();
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.USE_FINGERPRINT) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        manager.authenticate(cryptoObject, 0, cancellationSignal, this, null);
+        manager.authenticate(cryptoObject, 0, mCancellationSignal, this, null);
+    }
+
+    public void stopListening() {
+        if (mCancellationSignal != null) {
+            mCancellationSignal.cancel();
+            mCancellationSignal = null;
+        }
     }
 
 

@@ -5,6 +5,7 @@ import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.ErrorTransaction;
 import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
 import okhttp3.ResponseBody;
@@ -40,11 +41,14 @@ public interface ZafeplaceApiService {
 
     @GET("/app/{network}/account/token-transfer/rawtx")
     Call<TransactionRaw> getTokenTransactionRaw(@Path("network") String walletType,
-                                           @Query("sender") String addressSender,
-                                           @Query("recipient") String addressRecipient,
-                                           @Query("amount") int amount);
+                                                @Query("sender") String addressSender,
+                                                @Query("recipient") String addressRecipient,
+                                                @Query("amount") int amount);
 
     @Headers("Content-Type: application/json")
     @POST("/app/{network}/account/send-tx")
     Call<JsonObject> doTransaction(@Body HexModel hexModel, @Path("network") String walletType);
+
+    @GET("/app/{network}/smart-contract/abi")
+    Call<SmartContractTransactionRaw> getTransactionSmart(@Path("network") String walletType);
 }
