@@ -68,6 +68,15 @@ public class ZafeplaceApi {
         return service.getTransactionSmart(walletType);
     }
 
+    public Call<JsonObject> executeContractInformationMethod(String walletType) {
+        return service.executeContractInformationMethod(walletType);
+    }
+
+    public Call<TransactionRaw> executeContractTransactionMethod(String walletType) {
+        return service.executeContractTransactionMethod(walletType);
+    }
+
+
     public Call<JsonObject> doTransaction(String signTx, String walletType) {
         return service.doTransaction(new HexModel(signTx), walletType);
     }

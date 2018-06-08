@@ -1,7 +1,7 @@
 package com.zafeplace.sdk.server.models;
 
 public class Input {
-    public Boolean indexed;
+    public boolean indexed;
     public String name;
     public String type;
 
@@ -9,8 +9,8 @@ public class Input {
     public String toString() {
         return "Input{" +
                 "indexed=" + indexed +
-                ", name = " + name + " " +
-                ", type = " + type + " " +
-                "}";
+                ", name='" + name + '\'' +
+                ", type='" + type + '\'' +
+                '}';
     }
 }

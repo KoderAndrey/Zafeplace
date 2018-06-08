@@ -2,6 +2,7 @@ package com.zafeplace.sdk.server.models;
 
 public class BalanceModel {
 
-    public String balance;
-    public String currency;
+    public String network;
+    public boolean constant;
+    public double result;
 }

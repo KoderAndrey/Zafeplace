@@ -1,8 +1,16 @@
 package com.zafeplace.sdk.server.models;
 
-import java.util.List;
-
 public class SmartContractTransactionRaw {
-    public List<Abi> abi = null;
-    public String address;
+    public String network;
+    public boolean constant;
+    public ResultSmart result;
+
+    @Override
+    public String toString() {
+        return "SmartContractTransactionRaw{" +
+                "network='" + network + '\'' +
+                ", constant=" + constant +
+                ", result=" + result +
+                '}';
+    }
 }

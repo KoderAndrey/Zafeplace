@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
@@ -11,13 +12,16 @@ import com.zafeplace.sdk.Zafeplace;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
-import com.zafeplace.sdk.callbacks.OnSmartContractRaw;
+import com.zafeplace.sdk.callbacks.OnSmartContractRawList;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
+import com.zafeplace.sdk.server.models.Abi;
+
+import java.util.List;
 
 import static com.zafeplace.sdk.Zafeplace.WalletTypes.ETH_WALLET;
 
 public class MainActivity extends AppCompatActivity implements OnWalletGenerateListener, OnGetWalletBalance,
-        OnGetTokenBalance, OnMakeTransaction, OnSmartContractRaw {
+        OnGetTokenBalance, OnMakeTransaction, OnSmartContractRawList {
     public static String TAG = "TAG";
     private Zafeplace mZafeplace;
     private LoadingDialogFragment mLoadingDialogFragment;
@@ -64,7 +68,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     @Override
-    public void onWalletBalance(String response) {
+    public void onWalletBalance(double response) {
         mLoadingDialogFragment.dismiss();
         Toast.makeText(this, "Wallet balance " + response, Toast.LENGTH_SHORT).show();
     }
@@ -76,7 +80,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     @Override
-    public void onTokenBalance(String balans) {
+    public void onTokenBalance(double balans) {
         mLoadingDialogFragment.dismiss();
         Toast.makeText(this, "Token balans " + balans, Toast.LENGTH_SHORT).show();
     }
@@ -162,14 +166,17 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         context.startActivity(starter);
     }
 
+
     @Override
-    public void onGetSmartContractRaw(String response) {
-        Toast.makeText(this, "body smart contract " + response, Toast.LENGTH_SHORT).show();
+    public void onGetSmartContractAbiList(List<Abi> abis) {
+        for (Abi abi: abis) {
+            Log.d(TAG,"abi = " + abi);
+        }
     }
 
     @Override
     public void onErrorSmartRaw(Throwable error) {
-        Toast.makeText(this, "body smart contract error " + error.getMessage(), Toast.LENGTH_SHORT).show();
+
     }
 }
 //        "packageName": "com.zafeplace.sample",

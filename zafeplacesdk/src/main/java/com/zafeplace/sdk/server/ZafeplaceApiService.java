@@ -2,17 +2,14 @@ package com.zafeplace.sdk.server;
 
 import com.google.gson.JsonObject;
 import com.zafeplace.sdk.server.models.BalanceModel;
-import com.zafeplace.sdk.server.models.ErrorTransaction;
+import com.zafeplace.sdk.server.models.ContractModel;
 import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.Response;
 import retrofit2.http.Body;
-import retrofit2.http.Field;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
@@ -28,10 +25,12 @@ public interface ZafeplaceApiService {
                                        @Query("appSecret") String appSecret);
 
     @GET("/app/{network}/account/balance")
-    Call<BalanceModel> getWalletBalance(@Path("network") String walletType, @Query("address") String address);
+    Call<BalanceModel> getWalletBalance(@Path("network") String walletType,
+                                        @Query("address") String address);
 
     @GET("/app/{network}/account/token-balance")
-    Call<BalanceModel> getTokenBalance(@Path("network") String walletType, @Query("address") String address);
+    Call<BalanceModel> getTokenBalance(@Path("network") String walletType,
+                                       @Query("address") String address);
 
     @GET("/app/{network}/account/native-coin/rawtx")
     Call<TransactionRaw> getTransactionRaw(@Path("network") String walletType,
@@ -47,8 +46,16 @@ public interface ZafeplaceApiService {
 
     @Headers("Content-Type: application/json")
     @POST("/app/{network}/account/send-tx")
-    Call<JsonObject> doTransaction(@Body HexModel hexModel, @Path("network") String walletType);
+    Call<JsonObject> doTransaction(@Body HexModel hexModel,
+                                   @Path("network") String walletType);
 
-    @GET("/app/{network}/smart-contract/abi")
+    @GET("/app/{network}/contract/abi")
     Call<SmartContractTransactionRaw> getTransactionSmart(@Path("network") String walletType);
+
+    @POST("/app/{network}/contract/execute-method")
+    Call<TransactionRaw> executeContractTransactionMethod(@Path("network") String network);
+
+    @POST("/app/{network}/contract/execute-method")
+    Call<JsonObject> executeContractInformationMethod(@Path("network") String network,
+                                                      @Body ContractModel contractModel);
 }

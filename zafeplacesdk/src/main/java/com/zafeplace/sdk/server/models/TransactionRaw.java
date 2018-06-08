@@ -1,27 +1,16 @@
 package com.zafeplace.sdk.server.models;
 
 public class TransactionRaw {
-    private String sender;
-    private RawTx rawTx;
-
-    public String getSender() {
-        return sender;
-    }
-
-    public void setSender(String sender) {
-        this.sender = sender;
-    }
-
-    public RawTx getRawTx() {
-        return rawTx;
-    }
-
-    public void setRawTx(RawTx rawTx) {
-        this.rawTx = rawTx;
-    }
+    public String network;
+    public boolean constant;
+    public Result result;
 
     @Override
     public String toString() {
-        return super.toString();
+        return "TransactionRaw{" +
+                "network='" + network + '\'' +
+                ", constant=" + constant +
+                ", result=" + result +
+                '}';
     }
 }
