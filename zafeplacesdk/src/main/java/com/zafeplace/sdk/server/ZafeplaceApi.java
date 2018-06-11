@@ -4,8 +4,10 @@ import android.content.Context;
 
 import com.google.gson.JsonObject;
 import com.zafeplace.sdk.server.models.BalanceModel;
+import com.zafeplace.sdk.server.models.ContractModel;
 import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.ResultModel;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
@@ -68,14 +70,9 @@ public class ZafeplaceApi {
         return service.getTransactionSmart(walletType);
     }
 
-    public Call<JsonObject> executeContractInformationMethod(String walletType) {
-        return service.executeContractInformationMethod(walletType);
+    public Call<ResultModel> executeContractInformationMethod(String walletType, ContractModel contractModel) {
+        return service.executeContractInformationMethod(walletType, contractModel);
     }
-
-    public Call<TransactionRaw> executeContractTransactionMethod(String walletType) {
-        return service.executeContractTransactionMethod(walletType);
-    }
-
 
     public Call<JsonObject> doTransaction(String signTx, String walletType) {
         return service.doTransaction(new HexModel(signTx), walletType);

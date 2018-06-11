@@ -9,22 +9,28 @@ import android.view.View;
 import android.widget.Toast;
 
 import com.zafeplace.sdk.Zafeplace;
+import com.zafeplace.sdk.callbacks.OnExecuteMethodSmartContract;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
 import com.zafeplace.sdk.callbacks.OnSmartContractRawList;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import com.zafeplace.sdk.server.models.Abi;
+import com.zafeplace.sdk.server.models.MethodParamsSmart;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static com.zafeplace.sdk.Zafeplace.WalletTypes.ETH_WALLET;
 
 public class MainActivity extends AppCompatActivity implements OnWalletGenerateListener, OnGetWalletBalance,
-        OnGetTokenBalance, OnMakeTransaction, OnSmartContractRawList {
+        OnGetTokenBalance, OnMakeTransaction, OnSmartContractRawList, OnExecuteMethodSmartContract {
     public static String TAG = "TAG";
     private Zafeplace mZafeplace;
     private LoadingDialogFragment mLoadingDialogFragment;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -32,7 +38,6 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         setContentView(R.layout.activity_main);
         mLoadingDialogFragment = LoadingDialogFragment.newInstance();
         mZafeplace = Zafeplace.getInstance(this);
-        mZafeplace.getSmartContractTransactionRaw(ETH_WALLET, this);
     }
 
     @Override
@@ -159,6 +164,30 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         }
     }
 
+    public void getListSmartContracts(View view) {
+        if (mZafeplace.isIdentityExist(ETH_WALLET)) {
+            mZafeplace.getSmartContractTransactionRaw(ETH_WALLET, this);
+        } else {
+            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+
+    public void executeSmartMethodBalanceOf(View view) {
+        if (mZafeplace.isIdentityExist(ETH_WALLET)) {
+            List<MethodParamsSmart> list
+                    = new ArrayList<>(Arrays
+                    .asList(new MethodParamsSmart("tokenOwner",
+                            mZafeplace.getWallet(ETH_WALLET).getAddress())));
+            mZafeplace.executeSmartContractMethod(ETH_WALLET, true, "balanceOf",
+                    mZafeplace.getWallet(ETH_WALLET).getAddress(), list, this);
+        } else {
+            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+        }
+
+    }
+//     new ArrayList<MethodParamsSmart>(Arrays.asList(new MethodParamsSmart("tokenOwner", mZafeplace.getWallet(ETH_WALLET).getAddress()))
+
     public static void start(Context context) {
         Intent starter = new Intent(context, MainActivity.class);
         starter.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -166,17 +195,33 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         context.startActivity(starter);
     }
 
-
+    /**
+     * getting list of all smart contract for formation smart contract request
+     **/
     @Override
     public void onGetSmartContractAbiList(List<Abi> abis) {
-        for (Abi abi: abis) {
-            Log.d(TAG,"abi = " + abi);
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Abi abi : abis) {
+            stringBuilder.append(abi.name + "\n");
+            Log.d(TAG, "abi = " + abi);
         }
+        Toast.makeText(this, stringBuilder.toString(), Toast.LENGTH_LONG).show();
     }
+
 
     @Override
     public void onErrorSmartRaw(Throwable error) {
 
+    }
+
+    @Override
+    public void onExecuteContract(String result) {
+        Toast.makeText(this, "result tokens balans  = " + result, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onErrorExecuteConract(Throwable e) {
+        Toast.makeText(this, "error geting tokens balans  = " + e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 }
 //        "packageName": "com.zafeplace.sample",

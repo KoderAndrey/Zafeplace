@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.WindowManager;
 import android.widget.EditText;
@@ -16,6 +17,7 @@ import android.widget.Toast;
 
 import com.google.gson.JsonObject;
 import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
+import com.zafeplace.sdk.callbacks.OnExecuteMethodSmartContract;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
@@ -27,7 +29,10 @@ import com.zafeplace.sdk.models.Wallet;
 import com.zafeplace.sdk.server.ZafeplaceApi;
 import com.zafeplace.sdk.server.models.Abi;
 import com.zafeplace.sdk.server.models.BalanceModel;
+import com.zafeplace.sdk.server.models.ContractModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.MethodParamsSmart;
+import com.zafeplace.sdk.server.models.ResultModel;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
@@ -48,6 +53,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -327,11 +333,50 @@ public class Zafeplace {
         }
     }
 
-    public void executeSmartContractMethod(boolean isTransaction, String nameFunk) {
+    public void executeSmartContractMethod(WalletTypes walletType, boolean isConsatant, String nameFunk, String sender,
+                                           List<MethodParamsSmart> methodParamsSmarts,
+                                           OnExecuteMethodSmartContract onExecuteMethodSmartContract) {
+        StringBuilder stringBuilder = new StringBuilder();
+        int size = methodParamsSmarts.size();
+        for (int i = 0; i < size; i++) {
+            if (size == 1) {
+                stringBuilder.append("[" + methodParamsSmarts.get(0).toString() + "]");
+            } else {
 
+                if (i == 0) {
+                    stringBuilder.append("[" + methodParamsSmarts.get(0).toString() + ",");
+                } else if (i == size - 1) {
+                    stringBuilder.append(methodParamsSmarts.get(i).toString() + "]");
+                } else {
+                    stringBuilder.append(methodParamsSmarts.get(i).toString() + ",");
+                }
+            }
+        }
+        String resultCon = stringBuilder.toString();
+        ContractModel contractModel = new ContractModel(sender, nameFunk, resultCon);
+        Log.wtf("huy", contractModel.toString() + " " + resultCon + " " + walletType);
+        ZafeplaceApi.getInstance(mActivity).executeContractInformationMethod("ethereum", contractModel).enqueue(new Callback<ResultModel>() {
+            @Override
+            public void onResponse(Call<ResultModel> call, Response<ResultModel> response) {
+                Log.wtf("huy", response.code() + " " + response.message());
+                try {
+                    onExecuteMethodSmartContract.onExecuteContract(response.body().result);
+                } catch (Exception e) {
+                    Log.wtf("huy", e.getMessage());
+                    onExecuteMethodSmartContract.onErrorExecuteConract(e);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<ResultModel> call, Throwable t) {
+                Log.wtf("huy", t.getMessage());
+                onExecuteMethodSmartContract.onErrorExecuteConract(t);
+            }
+        });
     }
 
-    public void saveUserData(String firstName, String secondName, String email, String additionalData) {
+    public void saveUserData(String firstName, String secondName, String email, String
+            additionalData) {
         mManager.setUserData(firstName, secondName, email, additionalData, mActivity);
     }
 
@@ -379,7 +424,8 @@ public class Zafeplace {
         mManager.setIsLoggedIn(false, mActivity);
     }
 
-    private void checkLoginGenerateEthWallet(final OnWalletGenerateListener onWalletGenerateListener) {
+    private void checkLoginGenerateEthWallet(
+            final OnWalletGenerateListener onWalletGenerateListener) {
         String title = "";
         String titleButton = "";
         final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
@@ -444,7 +490,8 @@ public class Zafeplace {
         mAlert.dismiss();
     }
 
-    private void checkLoginCoinTransaction(final WalletTypes walletType, final String addressSender, final String addressRecipient, final double amount,
+    private void checkLoginCoinTransaction(final WalletTypes walletType,
+                                           final String addressSender, final String addressRecipient, final double amount,
                                            final OnMakeTransaction onMakeTransaction) {
         String title = "";
         String titleButton = "";
@@ -504,7 +551,8 @@ public class Zafeplace {
         });
     }
 
-    private void checkPinTokenTransaction(final WalletTypes walletType, final String addressSender, final String addressRecipient, final int amount,
+    private void checkPinTokenTransaction(final WalletTypes walletType,
+                                          final String addressSender, final String addressRecipient, final int amount,
                                           final OnMakeTransaction onMakeTransaction) {
         String title = "";
         String titleButton = "";

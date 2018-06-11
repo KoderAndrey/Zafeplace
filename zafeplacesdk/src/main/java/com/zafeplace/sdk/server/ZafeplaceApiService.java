@@ -5,9 +5,11 @@ import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.ContractModel;
 import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
+import com.zafeplace.sdk.server.models.ResultModel;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -53,9 +55,6 @@ public interface ZafeplaceApiService {
     Call<SmartContractTransactionRaw> getTransactionSmart(@Path("network") String walletType);
 
     @POST("/app/{network}/contract/execute-method")
-    Call<TransactionRaw> executeContractTransactionMethod(@Path("network") String network);
-
-    @POST("/app/{network}/contract/execute-method")
-    Call<JsonObject> executeContractInformationMethod(@Path("network") String network,
-                                                      @Body ContractModel contractModel);
+    Call<ResultModel> executeContractInformationMethod(@Path("network") String network,
+                                                        @Body ContractModel contractModel);
 }

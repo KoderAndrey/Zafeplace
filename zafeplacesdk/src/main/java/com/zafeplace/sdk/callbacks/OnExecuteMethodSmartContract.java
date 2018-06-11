@@ -1,7 +1,7 @@
 package com.zafeplace.sdk.callbacks;
 
 public interface OnExecuteMethodSmartContract {
-    void onExecuteContract();
+    void onExecuteContract(String result);
 
     void onErrorExecuteConract(Throwable e);
 }
