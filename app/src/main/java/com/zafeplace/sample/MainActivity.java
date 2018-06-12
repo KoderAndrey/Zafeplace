@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import com.zafeplace.sdk.Zafeplace;
@@ -17,8 +18,8 @@ import com.zafeplace.sdk.callbacks.OnSmartContractRawList;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import com.zafeplace.sdk.server.models.Abi;
 import com.zafeplace.sdk.server.models.MethodParamsSmart;
+import com.zafeplace.sdk.server.models.ResultToken;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +31,8 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     public static String TAG = "TAG";
     private Zafeplace mZafeplace;
     private LoadingDialogFragment mLoadingDialogFragment;
-
+    EditText numCoin;
+    EditText numberToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,6 +40,11 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         setContentView(R.layout.activity_main);
         mLoadingDialogFragment = LoadingDialogFragment.newInstance();
         mZafeplace = Zafeplace.getInstance(this);
+        numCoin = findViewById(R.id.nuber_coin);
+        numberToken = findViewById(R.id.number_token);
+        //     Log.d(TAG, "balans " + mZafeplace.getWallet(ETH_WALLET).getAddress());                  // todo delete after testing
+        //    mZafeplace.generateStellarWallet();
+
     }
 
     @Override
@@ -85,9 +92,13 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     @Override
-    public void onTokenBalance(double balans) {
+    public void onTokenBalance(List<ResultToken> balans) {
         mLoadingDialogFragment.dismiss();
-        Toast.makeText(this, "Token balans " + balans, Toast.LENGTH_SHORT).show();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (ResultToken resultToken : balans) {
+            stringBuilder.append(resultToken.toString()).append("\n");
+        }
+        Toast.makeText(this, "Token balans " + stringBuilder.toString(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -147,19 +158,23 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     public void createTransaction(View view) {
-        if (mZafeplace.isIdentityExist(ETH_WALLET)) {
+        if (mZafeplace.isIdentityExist(ETH_WALLET) && !numCoin.getText().toString().equals("")) {
             mZafeplace.createTransaction(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(),
-                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 0.1, this);
-        } else {
+                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", Double.parseDouble(numCoin.getText().toString()), this);
+        } else if (numCoin.getText().toString().equals("")) {
+            Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
+        } else if (!mZafeplace.isIdentityExist(ETH_WALLET)) {
             Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
     public void createTokenTransaction(View view) {
-        if (mZafeplace.isIdentityExist(ETH_WALLET)) {
+        if (mZafeplace.isIdentityExist(ETH_WALLET) && !numberToken.getText().toString().equals("")) {
             mZafeplace.createTransactionToken(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(),
-                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", 10, this);
-        } else {
+                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", Integer.parseInt(numberToken.getText().toString()), this);
+        } else if (numberToken.getText().toString().equals("")) {
+            Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
+        } else if (!mZafeplace.isIdentityExist(ETH_WALLET)) {
             Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
@@ -186,7 +201,6 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         }
 
     }
-//     new ArrayList<MethodParamsSmart>(Arrays.asList(new MethodParamsSmart("tokenOwner", mZafeplace.getWallet(ETH_WALLET).getAddress()))
 
     public static void start(Context context) {
         Intent starter = new Intent(context, MainActivity.class);
@@ -195,9 +209,6 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         context.startActivity(starter);
     }
 
-    /**
-     * getting list of all smart contract for formation smart contract request
-     **/
     @Override
     public void onGetSmartContractAbiList(List<Abi> abis) {
         StringBuilder stringBuilder = new StringBuilder();
@@ -211,7 +222,7 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
 
     @Override
     public void onErrorSmartRaw(Throwable error) {
-
+        Toast.makeText(this, "Error geting list abi = " + error.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

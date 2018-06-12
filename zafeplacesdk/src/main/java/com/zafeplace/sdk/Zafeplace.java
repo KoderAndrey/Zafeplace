@@ -33,7 +33,9 @@ import com.zafeplace.sdk.server.models.ContractModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.server.models.MethodParamsSmart;
 import com.zafeplace.sdk.server.models.ResultModel;
+import com.zafeplace.sdk.server.models.ResultToken;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
+import com.zafeplace.sdk.server.models.TokenBalans;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
@@ -53,7 +55,6 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -77,11 +78,11 @@ public class Zafeplace {
     private ExecutorService mExecutor;
     private AlertDialog mAlert = null;
     private FingerPrintLogin mFingerPrintLogin;
-    private static String smart_contract = "smart_contract";
     private boolean mIsCancelClicked;
 
     public enum WalletTypes {
-        ETH_WALLET;
+        ETH_WALLET,
+        STELLAR_WALLET;
     }
 
     public enum AuthType {
@@ -148,14 +149,19 @@ public class Zafeplace {
     }
 
     public void getTokenBalance(WalletTypes walletType, String address, final OnGetTokenBalance onGetTokenBalance) {
-        ZafeplaceApi.getInstance(mActivity).getTokenBalance(getWalletName(walletType), address).enqueue(new Callback<BalanceModel>() {
+        ZafeplaceApi.getInstance(mActivity).getTokenBalance(getWalletName(walletType), address).enqueue(new Callback<TokenBalans>() {
             @Override
-            public void onResponse(Call<BalanceModel> call, Response<BalanceModel> response) {
-                onGetTokenBalance.onTokenBalance(response.body().result);
+            public void onResponse(Call<TokenBalans> call, Response<TokenBalans> response) {
+                try {
+                    List<ResultToken> resultTokens = response.body().result;
+                    onGetTokenBalance.onTokenBalance(resultTokens);
+                } catch (Exception e) {
+                    onGetTokenBalance.onErrorTokenBalance(e);
+                }
             }
 
             @Override
-            public void onFailure(Call<BalanceModel> call, Throwable t) {
+            public void onFailure(Call<TokenBalans> call, Throwable t) {
                 onGetTokenBalance.onErrorTokenBalance(t);
             }
         });
@@ -305,8 +311,10 @@ public class Zafeplace {
         switch (walletType) {
             case ETH_WALLET:
                 checkLoginGenerateEthWallet(onWalletGenerateListener);
+                break;
         }
     }
+
 
 
     private void generateEthWallet(final OnWalletGenerateListener onWalletGenerateListener) {
@@ -354,22 +362,18 @@ public class Zafeplace {
         }
         String resultCon = stringBuilder.toString();
         ContractModel contractModel = new ContractModel(sender, nameFunk, resultCon);
-        Log.wtf("huy", contractModel.toString() + " " + resultCon + " " + walletType);
         ZafeplaceApi.getInstance(mActivity).executeContractInformationMethod("ethereum", contractModel).enqueue(new Callback<ResultModel>() {
             @Override
             public void onResponse(Call<ResultModel> call, Response<ResultModel> response) {
-                Log.wtf("huy", response.code() + " " + response.message());
                 try {
                     onExecuteMethodSmartContract.onExecuteContract(response.body().result);
                 } catch (Exception e) {
-                    Log.wtf("huy", e.getMessage());
                     onExecuteMethodSmartContract.onErrorExecuteConract(e);
                 }
             }
 
             @Override
             public void onFailure(Call<ResultModel> call, Throwable t) {
-                Log.wtf("huy", t.getMessage());
                 onExecuteMethodSmartContract.onErrorExecuteConract(t);
             }
         });

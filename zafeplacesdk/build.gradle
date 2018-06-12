@@ -9,8 +9,10 @@ android {
         minSdkVersion 19
         targetSdkVersion 27
         versionCode 1
+//        multiDexEnabled true
         versionName "1.0"
     }
+
 
     buildTypes {
         release {
@@ -30,6 +32,8 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
+//    implementation 'com.github.stellar:java-stellar-sdk:0.2.0'
+//    implementation 'com.android.support:multidex:1.0.3'
     implementation 'com.android.support:appcompat-v7:27.1.1'
     implementation 'org.web3j:core:3.3.1-android'
     implementation 'com.scottyab:aescrypt:0.0.1'

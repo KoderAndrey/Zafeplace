@@ -7,6 +7,7 @@ import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.server.models.ResultModel;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
+import com.zafeplace.sdk.server.models.TokenBalans;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
 import okhttp3.ResponseBody;
@@ -31,8 +32,8 @@ public interface ZafeplaceApiService {
                                         @Query("address") String address);
 
     @GET("/app/{network}/account/token-balance")
-    Call<BalanceModel> getTokenBalance(@Path("network") String walletType,
-                                       @Query("address") String address);
+    Call<TokenBalans> getTokenBalance(@Path("network") String walletType,
+                                      @Query("address") String address);
 
     @GET("/app/{network}/account/native-coin/rawtx")
     Call<TransactionRaw> getTransactionRaw(@Path("network") String walletType,

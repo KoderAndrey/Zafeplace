@@ -9,6 +9,7 @@ import com.zafeplace.sdk.server.models.HexModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.server.models.ResultModel;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
+import com.zafeplace.sdk.server.models.TokenBalans;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
 import okhttp3.OkHttpClient;
@@ -54,7 +55,7 @@ public class ZafeplaceApi {
         return service.getWalletBalance(walletType, address);
     }
 
-    public Call<BalanceModel> getTokenBalance(String walletType, String address) {
+    public Call<TokenBalans> getTokenBalance(String walletType, String address) {
         return service.getTokenBalance(walletType, address);
     }
 
