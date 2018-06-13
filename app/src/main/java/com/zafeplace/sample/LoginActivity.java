@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -88,14 +89,12 @@ public class LoginActivity extends AppCompatActivity {
             textView.setVisibility(View.VISIBLE);
             button.setVisibility(View.GONE);
             pinCodeEditText.setVisibility(View.GONE);
-            mZafeplace.fingerprintLogin(new FingerprintHandler.FingerprintAuthenticationCallback() {
-                @Override
-                public void onResponse(String message, boolean isSuccess) {
-                    if (isSuccess) {
-                        MainActivity.start(LoginActivity.this);
-                    } else {
-                        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
-                    }
+            mZafeplace.fingerprintLogin((message, isSuccess) -> {
+                if (isSuccess) {
+                    MainActivity.start(LoginActivity.this);
+                } else {
+                    Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
+                    Log.wtf("tag", "error " + message);
                 }
             });
         } else {
@@ -123,6 +122,11 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onErrorToken(Throwable error) {
                             loadingDialogFragment.dismiss();
+                            Log.wtf("tag", "error 1 " + error.getMessage());
+                            StackTraceElement[] elements = error.getStackTrace();
+                            for (StackTraceElement element: elements) {
+                                Log.wtf("tag", "ingo - " + element.getLineNumber() + " " + element);
+                            }
                             Toast.makeText(LoginActivity.this, "Error take token " + error.getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });

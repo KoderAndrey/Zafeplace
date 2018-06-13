@@ -42,6 +42,8 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         mZafeplace = Zafeplace.getInstance(this);
         numCoin = findViewById(R.id.nuber_coin);
         numberToken = findViewById(R.id.number_token);
+        mZafeplace.checkLoginGenerateStellarWallet();             //todo delete after testing
+        ///AllowTrustOperation allowTrustOperation;
         //     Log.d(TAG, "balans " + mZafeplace.getWallet(ETH_WALLET).getAddress());                  // todo delete after testing
         //    mZafeplace.generateStellarWallet();
 

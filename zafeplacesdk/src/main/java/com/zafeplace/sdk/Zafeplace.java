@@ -37,6 +37,7 @@ import com.zafeplace.sdk.server.models.ResultToken;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TokenBalans;
 import com.zafeplace.sdk.server.models.TransactionRaw;
+import com.zafeplace.sdk.stellarsdk.sdk.KeyPair;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
 import com.zafeplace.sdk.utils.ParseUtils;
@@ -49,9 +50,13 @@ import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Numeric;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigInteger;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -315,6 +320,30 @@ public class Zafeplace {
         }
     }
 
+    public void checkLoginGenerateStellarWallet() {
+        KeyPair pair = KeyPair.random();
+        System.out.println(new String(pair.getSecretSeed()));
+        System.out.println(pair.getAccountId());
+        final String friendbotUrl = String.format(
+                "https://friendbot.stellar.org/?addr=%s",
+                pair.getAccountId());
+        Log.wtf("tag", "url " + friendbotUrl);
+        new Thread() {
+            @Override
+            public void run() {
+                InputStream response = null;
+                try {
+                    response = new URL(friendbotUrl).openStream();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    System.out.println("error " + e.getMessage());
+                    Log.wtf("tag", "error " + e.getMessage());
+                }
+                String body = new Scanner(response, "UTF-8").useDelimiter("\\A").next();
+                Log.wtf("tag","SUCCESS! You have a new account :)\n" + body);
+            }
+        }.start();
+    }
 
 
     private void generateEthWallet(final OnWalletGenerateListener onWalletGenerateListener) {

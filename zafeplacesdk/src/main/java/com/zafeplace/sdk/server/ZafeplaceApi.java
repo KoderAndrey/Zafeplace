@@ -13,7 +13,6 @@ import com.zafeplace.sdk.server.models.TokenBalans;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
 import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
