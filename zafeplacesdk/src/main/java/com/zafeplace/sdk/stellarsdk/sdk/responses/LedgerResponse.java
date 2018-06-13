@@ -2,12 +2,6 @@ package com.zafeplace.sdk.stellarsdk.sdk.responses;
 
 import com.google.gson.annotations.SerializedName;
 
-/**
- * Represents ledger response.
- * @see <a href="https://www.stellar.org/developers/horizon/reference/resources/ledger.html" target="_blank">Ledger documentation</a>
- * @see org.stellar.sdk.requests.LedgersRequestBuilder
- * @see org.stellar.sdk.Server#ledgers()
- */
 public class LedgerResponse extends Response {
   @SerializedName("sequence")
   private final Long sequence;

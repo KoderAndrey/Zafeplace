@@ -2,11 +2,7 @@ package com.zafeplace.sdk.stellarsdk.sdk;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-/**
- * Represents an account in Stellar network with it's sequence number.
- * Account object is required to build a {@link Transaction}.
- * @see org.stellar.sdk.Transaction.Builder
- */
+
 public class Account implements TransactionBuilderAccount {
   private final KeyPair mKeyPair;
   private Long mSequenceNumber;
