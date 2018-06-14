@@ -13,7 +13,6 @@ import android.widget.Toast;
 
 import com.zafeplace.sdk.Zafeplace;
 import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
-import com.zafeplace.sdk.utils.FingerprintHandler;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,6 +43,11 @@ public class LoginActivity extends AppCompatActivity {
         mUnbinder = ButterKnife.bind(this);
         mZafeplace = Zafeplace.getInstance(this);
         fetchExtras();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         initUI();
     }
 
@@ -75,7 +79,18 @@ public class LoginActivity extends AppCompatActivity {
         Intent starter = new Intent(context, LoginActivity.class);
         starter.putExtra(AUTH_TYPE, authType);
         starter.putExtra(IS_REGISTRATION, isRegistration);
+        starter.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        starter.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
         context.startActivity(starter);
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!mIsRegistrtation) {
+            moveTaskToBack(true);
+        } else {
+            super.onBackPressed();
+        }
     }
 
     private void fetchExtras() {
@@ -85,16 +100,19 @@ public class LoginActivity extends AppCompatActivity {
 
     private void initUI() {
         if (mAuthType == FINGERPRINT_AUTH) {
+            Log.d("TAG", "FINGERPRINT_AUTH");
             checkAccessToken(false);
             textView.setVisibility(View.VISIBLE);
             button.setVisibility(View.GONE);
             pinCodeEditText.setVisibility(View.GONE);
             mZafeplace.fingerprintLogin((message, isSuccess) -> {
                 if (isSuccess) {
-                    MainActivity.start(LoginActivity.this);
+                    ChooseActivity.start(LoginActivity.this);
                 } else {
-                    Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
-                    Log.wtf("tag", "error " + message);
+                    if (!message.contains("Fingerprint operation canceled.")) {
+                        Toast.makeText(LoginActivity.this, message, Toast.LENGTH_SHORT).show();
+                        Log.wtf("tag", "error " + message);
+                    }
                 }
             });
         } else {
@@ -115,7 +133,7 @@ public class LoginActivity extends AppCompatActivity {
                         public void onGetToken(String response) {
                             loadingDialogFragment.dismiss();
                             if (goMain) {
-                                MainActivity.start(LoginActivity.this);
+                                ChooseActivity.start(LoginActivity.this);
                             }
                         }
 
@@ -124,7 +142,7 @@ public class LoginActivity extends AppCompatActivity {
                             loadingDialogFragment.dismiss();
                             Log.wtf("tag", "error 1 " + error.getMessage());
                             StackTraceElement[] elements = error.getStackTrace();
-                            for (StackTraceElement element: elements) {
+                            for (StackTraceElement element : elements) {
                                 Log.wtf("tag", "ingo - " + element.getLineNumber() + " " + element);
                             }
                             Toast.makeText(LoginActivity.this, "Error take token " + error.getMessage(), Toast.LENGTH_SHORT).show();
@@ -132,7 +150,7 @@ public class LoginActivity extends AppCompatActivity {
                     });
         } else {
             if (goMain) {
-                MainActivity.start(LoginActivity.this);
+                ChooseActivity.start(LoginActivity.this);
             }
         }
     }

@@ -6,6 +6,7 @@ import android.preference.PreferenceManager;
 
 import com.google.gson.Gson;
 import com.zafeplace.sdk.models.EthWallet;
+import com.zafeplace.sdk.models.StellarWallet;
 import com.zafeplace.sdk.models.User;
 
 import static com.zafeplace.sdk.Constants.ZAFEPLACE_PASSWORD;
@@ -16,6 +17,7 @@ public class PreferencesManager {
 
     private final static String ACCESS_TOKEN_PREF_KEY = "access_token_pref_key";
     private final static String ETH_WALLET_PREF_KEY = "eth_wallet_pref_key";
+    private final static String STELLAR_WALLET_PREF_KEY = "stellar_wallet_pref_key";
     private final static String USER_PREF_KEY = "user_pref_key";
 
     private final static String IS_LOGGED_IN_PREF_KEY = "is_logged_in_pref_key";
@@ -51,8 +53,17 @@ public class PreferencesManager {
         prefs.edit().putString(ETH_WALLET_PREF_KEY, userString).apply();
     }
 
-    public EthWallet getEthWallet(Context context) {
+    public void setStellarWallet(String secretSeed, String address, Context context) {
+        StellarWallet stellarWallet = new StellarWallet();
+        stellarWallet.setSecretSeed(encryption(ZAFEPLACE_PASSWORD, secretSeed));
+        stellarWallet.setAddress(encryption(ZAFEPLACE_PASSWORD, address));
+        String userString = new Gson().toJson(stellarWallet);
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        prefs.edit().putString(STELLAR_WALLET_PREF_KEY, userString).apply();
+    }
 
+
+    public EthWallet getEthWallet(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         String wallet = prefs.getString(ETH_WALLET_PREF_KEY, null);
         EthWallet ethWallet = new Gson().fromJson(wallet, EthWallet.class);
@@ -61,6 +72,17 @@ public class PreferencesManager {
         ethWallet.setAddress(decryption(ZAFEPLACE_PASSWORD, ethWallet.getAddress()));
         return ethWallet;
     }
+
+    public StellarWallet getStellarWallet(Context context) {
+        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+        String wallet = prefs.getString(STELLAR_WALLET_PREF_KEY, null);
+        StellarWallet stellarWallet = new Gson().fromJson(wallet, StellarWallet.class);
+        if (stellarWallet == null) return null;
+        stellarWallet.setSecretSeed(decryption(ZAFEPLACE_PASSWORD, stellarWallet.getSecretSeed()));
+        stellarWallet.setAddress(decryption(ZAFEPLACE_PASSWORD, stellarWallet.getAddress()));
+        return stellarWallet;
+    }
+
 
     public void setAuthType(int authType, Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);

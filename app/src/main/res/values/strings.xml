@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">ZafeplaceSample</string>
+    <string name="etherum">Etherum</string>
+    <string name="stellar">Stellar</string>
 </resources>

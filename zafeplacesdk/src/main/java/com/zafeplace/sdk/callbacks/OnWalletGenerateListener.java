@@ -5,5 +5,7 @@ public interface OnWalletGenerateListener {
 
     void onSuccessGenerate(String address);
 
-    void onErrorGenerate(String error);
+    void onErrorGenerate(Exception error);
+
+    void onErrorGenerate(String errorMessage);
 }

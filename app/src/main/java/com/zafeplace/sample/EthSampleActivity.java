@@ -17,6 +17,7 @@ import com.zafeplace.sdk.callbacks.OnMakeTransaction;
 import com.zafeplace.sdk.callbacks.OnSmartContractRawList;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
 import com.zafeplace.sdk.server.models.Abi;
+import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.MethodParamsSmart;
 import com.zafeplace.sdk.server.models.ResultToken;
 
@@ -25,9 +26,10 @@ import java.util.Arrays;
 import java.util.List;
 
 import static com.zafeplace.sdk.Zafeplace.WalletTypes.ETH_WALLET;
+import static com.zafeplace.sdk.Zafeplace.WalletTypes.STELLAR_WALLET;
 
-public class MainActivity extends AppCompatActivity implements OnWalletGenerateListener, OnGetWalletBalance,
-        OnGetTokenBalance, OnMakeTransaction, OnSmartContractRawList, OnExecuteMethodSmartContract {
+public class EthSampleActivity extends AppCompatActivity implements OnWalletGenerateListener,
+        OnMakeTransaction, OnSmartContractRawList, OnExecuteMethodSmartContract {
     public static String TAG = "TAG";
     private Zafeplace mZafeplace;
     private LoadingDialogFragment mLoadingDialogFragment;
@@ -42,11 +44,6 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
         mZafeplace = Zafeplace.getInstance(this);
         numCoin = findViewById(R.id.nuber_coin);
         numberToken = findViewById(R.id.number_token);
-        mZafeplace.checkLoginGenerateStellarWallet();             //todo delete after testing
-        ///AllowTrustOperation allowTrustOperation;
-        //     Log.d(TAG, "balans " + mZafeplace.getWallet(ETH_WALLET).getAddress());                  // todo delete after testing
-        //    mZafeplace.generateStellarWallet();
-
     }
 
     @Override
@@ -58,6 +55,11 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     public void onSuccessGenerate(String address) {
         mLoadingDialogFragment.dismiss();
         Toast.makeText(this, "Wallet was generated", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onErrorGenerate(Exception error) {
+        Toast.makeText(this, "Error generating wallet " + error.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -79,34 +81,6 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
                 }
             }
         }.start();
-    }
-
-    @Override
-    public void onWalletBalance(double response) {
-        mLoadingDialogFragment.dismiss();
-        Toast.makeText(this, "Wallet balance " + response, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onErrorWalletBalance(Throwable error) {
-        mLoadingDialogFragment.dismiss();
-        Toast.makeText(this, "Error Wallet Balans " + error.getMessage(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onTokenBalance(List<ResultToken> balans) {
-        mLoadingDialogFragment.dismiss();
-        StringBuilder stringBuilder = new StringBuilder();
-        for (ResultToken resultToken : balans) {
-            stringBuilder.append(resultToken.toString()).append("\n");
-        }
-        Toast.makeText(this, "Token balans " + stringBuilder.toString(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onErrorTokenBalance(Throwable error) {
-        mLoadingDialogFragment.dismiss();
-        Toast.makeText(this, "Error Token Balan " + error.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -133,8 +107,30 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
 
 
     @Override
-    public void onBackPressed() {
-        moveTaskToBack(true);
+    public void onGetSmartContractAbiList(List<Abi> abis) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (Abi abi : abis) {
+            stringBuilder.append(abi.name + "\n");
+
+            Log.d(TAG, "abi = " + abi);
+        }
+        Toast.makeText(this, stringBuilder.toString(), Toast.LENGTH_LONG).show();
+    }
+
+
+    @Override
+    public void onErrorSmartRaw(Throwable error) {
+        Toast.makeText(this, "Error geting list abi = " + error.getMessage(), Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onExecuteContract(String result) {
+        Toast.makeText(this, "result tokens balans  = " + result, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onErrorExecuteConract(Throwable e) {
+        Toast.makeText(this, "error geting tokens balans  = " + e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     public void generateWallet(View view) {
@@ -143,7 +139,19 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
 
     public void getWalletBalance(View view) {
         if (mZafeplace.isIdentityExist(ETH_WALLET)) {
-            mZafeplace.getWalletBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), this);
+            mZafeplace.getWalletBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), new OnGetWalletBalance() {
+                @Override
+                public void onWalletBalance(BalanceModel balans) {
+                    mLoadingDialogFragment.dismiss();
+                    Toast.makeText(EthSampleActivity.this, "Balans = " + balans.result, Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onErrorWalletBalance(Throwable error) {
+                    mLoadingDialogFragment.dismiss();
+                    Toast.makeText(EthSampleActivity.this, "Balans error = " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
             mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
         } else {
             Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
@@ -152,7 +160,23 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
 
     public void getTokenBalance(View view) {
         if (mZafeplace.isIdentityExist(ETH_WALLET)) {
-            mZafeplace.getTokenBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), this);
+            mZafeplace.getTokenBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), new OnGetTokenBalance() {
+                @Override
+                public void onTokenBalance(List<ResultToken> tokenBalans) {
+                    mLoadingDialogFragment.dismiss();
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (ResultToken resultToken : tokenBalans) {
+                        stringBuilder.append(resultToken.toString()).append("\n");
+                    }
+                    Toast.makeText(EthSampleActivity.this, "Token balans " + stringBuilder.toString(), Toast.LENGTH_SHORT).show();
+                }
+
+                @Override
+                public void onErrorTokenBalance(Throwable error) {
+                    mLoadingDialogFragment.dismiss();
+                    Toast.makeText(EthSampleActivity.this, "Error Token Balan " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                }
+            });
             mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
         } else {
             Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
@@ -205,37 +229,10 @@ public class MainActivity extends AppCompatActivity implements OnWalletGenerateL
     }
 
     public static void start(Context context) {
-        Intent starter = new Intent(context, MainActivity.class);
-        starter.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        starter.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        Intent starter = new Intent(context, EthSampleActivity.class);
         context.startActivity(starter);
     }
 
-    @Override
-    public void onGetSmartContractAbiList(List<Abi> abis) {
-        StringBuilder stringBuilder = new StringBuilder();
-        for (Abi abi : abis) {
-            stringBuilder.append(abi.name + "\n");
-            Log.d(TAG, "abi = " + abi);
-        }
-        Toast.makeText(this, stringBuilder.toString(), Toast.LENGTH_LONG).show();
-    }
-
-
-    @Override
-    public void onErrorSmartRaw(Throwable error) {
-        Toast.makeText(this, "Error geting list abi = " + error.getMessage(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onExecuteContract(String result) {
-        Toast.makeText(this, "result tokens balans  = " + result, Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onErrorExecuteConract(Throwable e) {
-        Toast.makeText(this, "error geting tokens balans  = " + e.getMessage(), Toast.LENGTH_SHORT).show();
-    }
 }
 //        "packageName": "com.zafeplace.sample",
 //        "appSecret": "756496e0a7d900ade56913cc098749ee"

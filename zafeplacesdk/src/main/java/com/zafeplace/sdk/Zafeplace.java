@@ -143,7 +143,8 @@ public class Zafeplace {
         ZafeplaceApi.getInstance(mActivity).getWalletBalance(getWalletName(walletType), address).enqueue(new Callback<BalanceModel>() {
             @Override
             public void onResponse(Call<BalanceModel> call, Response<BalanceModel> response) {
-                onGetWalletBalance.onWalletBalance(response.body().result);
+                Log.wtf("tag", "result " + response.body().toString());
+                onGetWalletBalance.onWalletBalance(response.body());
             }
 
             @Override
@@ -158,7 +159,9 @@ public class Zafeplace {
             @Override
             public void onResponse(Call<TokenBalans> call, Response<TokenBalans> response) {
                 try {
-                    List<ResultToken> resultTokens = response.body().result;
+                    TokenBalans tokenBalans = response.body();
+                    Log.wtf("tag", "result stellar " + tokenBalans.toString());
+                    List<ResultToken> resultTokens = tokenBalans.result;
                     onGetTokenBalance.onTokenBalance(resultTokens);
                 } catch (Exception e) {
                     onGetTokenBalance.onErrorTokenBalance(e);
@@ -317,13 +320,79 @@ public class Zafeplace {
             case ETH_WALLET:
                 checkLoginGenerateEthWallet(onWalletGenerateListener);
                 break;
+            case STELLAR_WALLET:
+                checkLoginGenerateStellarWallet(onWalletGenerateListener);
+                break;
+
         }
     }
 
-    public void checkLoginGenerateStellarWallet() {
+    private void checkLoginGenerateStellarWallet(OnWalletGenerateListener onWalletGenerateListener) {
+        String title = "";
+        String titleButton = "";
+        final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
+                R.style.SimpleDialogTheme));
+        builder.setCancelable(true);
+        switch (getAuthType()) {
+            case FINGERPRINT_AUTH:
+                title = "Please use fingerprint for authorization";
+                titleButton = "Cancel";
+                fingerprintLogin((message, isSuccess) -> {
+                    if (isSuccess) {
+                        closeDialog();
+                        generatingStellarWallet(onWalletGenerateListener);
+                        onWalletGenerateListener.onStartGenerate();
+                    } else {
+                        if (!mIsCancelClicked) {
+                            Toast.makeText(mActivity, "Wrong Fingerprint!", Toast.LENGTH_SHORT).show();
+                        } else {
+                            mIsCancelClicked = false;
+                        }
+                    }
+                });
+                break;
+            case PIN_AUTH:
+                title = "Input Pin Code";
+                titleButton = "OK";
+                mInput = new EditText(mActivity);
+                mInput.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_PASSWORD);
+                LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                        LinearLayout.LayoutParams.MATCH_PARENT,
+                        LinearLayout.LayoutParams.MATCH_PARENT);
+                mInput.setLayoutParams(lp);
+                builder.setView(mInput);
+                break;
+        }
+        builder.setTitle(title).setNeutralButton(titleButton, (dialog, which) -> {
+            switch (getAuthType()) {
+                case PIN_AUTH: {
+                    if (mInput.getText().toString().equals(getPinCode())) {
+                        generatingStellarWallet(onWalletGenerateListener);
+                        onWalletGenerateListener.onStartGenerate();
+                    } else {
+                        Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                break;
+                case FINGERPRINT_AUTH:
+                    mIsCancelClicked = true;
+                    cancelFingerprintLogin();
+                    break;
+            }
+        });
+
+        mAlert = builder.show();
+        mAlert.setOnDismissListener((dialog) -> {
+            mIsCancelClicked = true;
+        });
+    }
+
+
+    private void generatingStellarWallet(OnWalletGenerateListener onWalletGenerateListener) {
         KeyPair pair = KeyPair.random();
-        System.out.println(new String(pair.getSecretSeed()));
-        System.out.println(pair.getAccountId());
+        String secretSeed = new String(pair.getSecretSeed());
+        String accId = pair.getAccountId();
+        Log.wtf("tag", "acc id " + accId);
         final String friendbotUrl = String.format(
                 "https://friendbot.stellar.org/?addr=%s",
                 pair.getAccountId());
@@ -334,17 +403,20 @@ public class Zafeplace {
                 InputStream response = null;
                 try {
                     response = new URL(friendbotUrl).openStream();
+                    String body = new Scanner(response, "UTF-8").useDelimiter("\\A").next();
+                    mManager.setStellarWallet(secretSeed, accId, mActivity);
+                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onSuccessGenerate(accId));
                 } catch (IOException e) {
                     e.printStackTrace();
-                    System.out.println("error " + e.getMessage());
+                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onErrorGenerate(e));
                     Log.wtf("tag", "error " + e.getMessage());
+                } catch (Exception e) {
+                    onWalletGenerateListener.onErrorGenerate(e);
+                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onErrorGenerate(e));
                 }
-                String body = new Scanner(response, "UTF-8").useDelimiter("\\A").next();
-                Log.wtf("tag","SUCCESS! You have a new account :)\n" + body);
             }
         }.start();
     }
-
 
     private void generateEthWallet(final OnWalletGenerateListener onWalletGenerateListener) {
         if (ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -362,8 +434,8 @@ public class Zafeplace {
                     mManager.setEthWallet(privateKey, address, mActivity);
                     deleteFile(Environment.getExternalStorageDirectory() + "/" + wallet);
                     mActivity.runOnUiThread(() -> onWalletGenerateListener.onSuccessGenerate(address));
-                } catch (final Throwable e) {
-                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onErrorGenerate(e.getMessage()));
+                } catch (final Exception e) {
+                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onErrorGenerate(e));
                 }
             });
 
@@ -417,6 +489,8 @@ public class Zafeplace {
         switch (walletType) {
             case ETH_WALLET:
                 return mManager.getEthWallet(mActivity);
+            case STELLAR_WALLET:
+                return mManager.getStellarWallet(mActivity);
             default:
                 return null;
         }
@@ -426,6 +500,8 @@ public class Zafeplace {
         switch (walletType) {
             case ETH_WALLET:
                 return !isNull(mManager.getEthWallet(mActivity));
+            case STELLAR_WALLET:
+                return !isNull(mManager.getStellarWallet(mActivity));
             default:
                 return false;
         }
