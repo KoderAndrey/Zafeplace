@@ -8,6 +8,7 @@ import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
+import android.util.Base64;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.WindowManager;
@@ -37,7 +38,15 @@ import com.zafeplace.sdk.server.models.ResultToken;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TokenBalans;
 import com.zafeplace.sdk.server.models.TransactionRaw;
+import com.zafeplace.sdk.stellarsdk.sdk.AssetTypeNative;
 import com.zafeplace.sdk.stellarsdk.sdk.KeyPair;
+import com.zafeplace.sdk.stellarsdk.sdk.Memo;
+import com.zafeplace.sdk.stellarsdk.sdk.Network;
+import com.zafeplace.sdk.stellarsdk.sdk.PaymentOperation;
+import com.zafeplace.sdk.stellarsdk.sdk.Server;
+import com.zafeplace.sdk.stellarsdk.sdk.Transaction;
+import com.zafeplace.sdk.stellarsdk.sdk.responses.AccountResponse;
+import com.zafeplace.sdk.stellarsdk.sdk.responses.SubmitTransactionResponse;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
 import com.zafeplace.sdk.utils.ParseUtils;
@@ -206,13 +215,47 @@ public class Zafeplace {
         ZafeplaceApi.getInstance(mActivity).getRawTransaction(getWalletName(walletType), addressSender, addressRecipient, amount).enqueue(new Callback<TransactionRaw>() {
             @Override
             public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
-                TransactionRaw raw = response.body();
-                Credentials credentials = Credentials.create(mManager.getEthWallet(mActivity).getPrivateKey());
-                RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
-                        new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
-                byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
-                String hexValue = Numeric.toHexString(signedMessage);
-                showDialog(hexValue, onMakeTransaction);
+                switch (walletType) {
+                    case ETH_WALLET:
+                        TransactionRaw raw = response.body();
+                        Credentials credentials = Credentials.create(mManager.getEthWallet(mActivity).getPrivateKey());
+                        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
+                                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
+                        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+                        String hexValue = Numeric.toHexString(signedMessage);
+                        showDialog(hexValue, onMakeTransaction);
+                        break;
+                    case STELLAR_WALLET:
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                Log.wtf("tag", "response " + response.body().toString());
+                                Network.useTestNetwork();
+                                Server server = new Server("https://horizon-testnet.stellar.org");
+                                KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
+                                KeyPair destination = KeyPair.fromAccountId(mManager.getStellarWallet(mActivity).getAddress());
+                                try {
+                                    server.accounts().account(destination);
+                                    AccountResponse sourceAccount = server.accounts().account(source);
+                                    Transaction transaction = new Transaction.Builder(sourceAccount)
+                                            .addOperation(new PaymentOperation.Builder(destination, new AssetTypeNative(), "10").build())
+                                            .addMemo(Memo.text("Test Transaction"))
+                                            .build();
+                                    transaction.sign(source);
+                                    SubmitTransactionResponse submitTransactionResponse = server.submitTransaction(transaction);
+                                    Log.wtf("tag", "Success!");
+                                    Log.wtf("tag", "" + submitTransactionResponse.getEnvelopeXdr() + " " + submitTransactionResponse.getHash() + " "
+                                            + submitTransactionResponse.isSuccess());
+                                    Base64.decode(submitTransactionResponse.getEnvelopeXdr(), Base64.DEFAULT);
+//                                    submitTransactionResponse.getEnvelopeXdr().
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                    Log.wtf("tag", "exception " + e.getMessage());
+                                }
+                            }
+                        }.start();
+                        break;
+                }
             }
 
             @Override

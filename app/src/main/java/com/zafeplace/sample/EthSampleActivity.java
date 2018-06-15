@@ -25,8 +25,10 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.Unbinder;
+
 import static com.zafeplace.sdk.Zafeplace.WalletTypes.ETH_WALLET;
-import static com.zafeplace.sdk.Zafeplace.WalletTypes.STELLAR_WALLET;
 
 public class EthSampleActivity extends AppCompatActivity implements OnWalletGenerateListener,
         OnMakeTransaction, OnSmartContractRawList, OnExecuteMethodSmartContract {
@@ -35,11 +37,13 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
     private LoadingDialogFragment mLoadingDialogFragment;
     EditText numCoin;
     EditText numberToken;
+    private Unbinder mUnnbinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mUnnbinder = ButterKnife.bind(this);
         mLoadingDialogFragment = LoadingDialogFragment.newInstance();
         mZafeplace = Zafeplace.getInstance(this);
         numCoin = findViewById(R.id.nuber_coin);
@@ -211,7 +215,6 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         } else {
             Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
         }
-
     }
 
     public void executeSmartMethodBalanceOf(View view) {
@@ -225,7 +228,6 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         } else {
             Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
         }
-
     }
 
     public static void start(Context context) {
@@ -233,6 +235,11 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         context.startActivity(starter);
     }
 
+    @Override
+    protected void onDestroy() {
+        mUnnbinder.unbind();
+        super.onDestroy();
+    }
 }
 //        "packageName": "com.zafeplace.sample",
 //        "appSecret": "756496e0a7d900ade56913cc098749ee"
