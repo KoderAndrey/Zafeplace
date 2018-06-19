@@ -10,7 +10,6 @@ import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TokenBalans;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.http.Body;
 import retrofit2.http.GET;
@@ -41,6 +40,8 @@ public interface ZafeplaceApiService {
                                            @Query("recipient") String addressRecipient,
                                            @Query("amount") double amount);
 
+
+
     @GET("/app/{network}/account/token-transfer/rawtx")
     Call<TransactionRaw> getTokenTransactionRaw(@Path("network") String walletType,
                                                 @Query("sender") String addressSender,
@@ -57,5 +58,5 @@ public interface ZafeplaceApiService {
 
     @POST("/app/{network}/contract/execute-method")
     Call<ResultModel> executeContractInformationMethod(@Path("network") String network,
-                                                        @Body ContractModel contractModel);
+                                                          @Body ContractModel contractModel);
 }

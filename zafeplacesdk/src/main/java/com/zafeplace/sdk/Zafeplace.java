@@ -45,8 +45,10 @@ import com.zafeplace.sdk.stellarsdk.sdk.Network;
 import com.zafeplace.sdk.stellarsdk.sdk.PaymentOperation;
 import com.zafeplace.sdk.stellarsdk.sdk.Server;
 import com.zafeplace.sdk.stellarsdk.sdk.Transaction;
+import com.zafeplace.sdk.stellarsdk.sdk.TransactionBuilderAccount;
 import com.zafeplace.sdk.stellarsdk.sdk.responses.AccountResponse;
 import com.zafeplace.sdk.stellarsdk.sdk.responses.SubmitTransactionResponse;
+import com.zafeplace.sdk.stellarsdk.sdk.xdr.XdrDataInputStream;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
 import com.zafeplace.sdk.utils.ParseUtils;
@@ -59,6 +61,7 @@ import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Numeric;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -229,28 +232,33 @@ public class Zafeplace {
                         new Thread() {
                             @Override
                             public void run() {
-                                Log.wtf("tag", "response " + response.body().toString());
-                                Network.useTestNetwork();
+                                TransactionRaw raw1 = response.body();
+                                Log.wtf("tag", "response " + raw1.toString());
+                                Log.wtf("TAG", "raw tx " + raw1.result.rawTx.result.rawTx);
                                 Server server = new Server("https://horizon-testnet.stellar.org");
                                 KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
-                                KeyPair destination = KeyPair.fromAccountId(mManager.getStellarWallet(mActivity).getAddress());
+                                KeyPair destination = KeyPair.fromAccountId(addressRecipient);
                                 try {
+                                    Network.useTestNetwork();
                                     server.accounts().account(destination);
                                     AccountResponse sourceAccount = server.accounts().account(source);
                                     Transaction transaction = new Transaction.Builder(sourceAccount)
-                                            .addOperation(new PaymentOperation.Builder(destination, new AssetTypeNative(), "10").build())
+                                            .addOperation(new PaymentOperation.Builder(destination, new AssetTypeNative(), String.valueOf(amount)).build())
                                             .addMemo(Memo.text("Test Transaction"))
                                             .build();
                                     transaction.sign(source);
-                                    SubmitTransactionResponse submitTransactionResponse = server.submitTransaction(transaction);
-                                    Log.wtf("tag", "Success!");
-                                    Log.wtf("tag", "" + submitTransactionResponse.getEnvelopeXdr() + " " + submitTransactionResponse.getHash() + " "
-                                            + submitTransactionResponse.isSuccess());
-                                    Base64.decode(submitTransactionResponse.getEnvelopeXdr(), Base64.DEFAULT);
-//                                    submitTransactionResponse.getEnvelopeXdr().
+                                    String xdrBase64Envelope = transaction.toEnvelopeXdrBase64();
+                                    Log.wtf("tag", "64 " + xdrBase64Envelope);
+                                    XdrDataInputStream is = new XdrDataInputStream(
+                                            new ByteArrayInputStream(
+                                                    Base64.decode(raw1.result.rawTx.result.rawTx, Base64.DEFAULT)
+                                            )
+                                    );
+                                    com.zafeplace.sdk.stellarsdk.sdk.xdr.Transaction tx2 = com.zafeplace.sdk.stellarsdk.sdk.xdr.Transaction.decode(is);
+                                    Transaction transaction1 = new Transaction.Builder(tx2.sourceAccount);
                                 } catch (IOException e) {
                                     e.printStackTrace();
-                                    Log.wtf("tag", "exception " + e.getMessage());
+                                    Log.wtf("tag", "error transaction " + e.getMessage());
                                 }
                             }
                         }.start();
@@ -268,12 +276,9 @@ public class Zafeplace {
 
     private void showDialog(final String message, final OnMakeTransaction onMakeTransaction) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
-                R.style.SimpleDialogTheme)).setTitle("Do you really want to do this transaction?").setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                onMakeTransaction.onBreakTransaction();
-                dialog.dismiss();
-            }
+                R.style.SimpleDialogTheme)).setTitle("Do you really want to do this transaction?").setNegativeButton("Cancel", (dialog, which) -> {
+            onMakeTransaction.onBreakTransaction();
+            dialog.dismiss();
         }).setPositiveButton("Accept", (dialog, which) -> doTransaction(WalletTypes.ETH_WALLET, message, onMakeTransaction));
         try {
             builder.show();
@@ -348,6 +353,7 @@ public class Zafeplace {
         if (mFingerPrintLogin != null) {
             mFingerPrintLogin.stopAuth();
         }
+
     }
 
 

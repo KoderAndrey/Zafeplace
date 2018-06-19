@@ -10,6 +10,7 @@ public class Result_ {
     public String to;
     public BigInteger value;
     public BigInteger chainId;
+    public String rawTx;
 
     @Override
     public String toString() {
@@ -21,6 +22,7 @@ public class Result_ {
                 ", to='" + to + '\'' +
                 ", value=" + value +
                 ", chainId=" + chainId +
+                ", rawTx='" + rawTx + '\'' +
                 '}';
     }
 }
