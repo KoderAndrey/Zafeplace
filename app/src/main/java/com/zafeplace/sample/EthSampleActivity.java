@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.Unbinder;
 
@@ -35,19 +36,19 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
     public static String TAG = "TAG";
     private Zafeplace mZafeplace;
     private LoadingDialogFragment mLoadingDialogFragment;
+    @BindView(R.id.nuber_coin)
     EditText numCoin;
+    @BindView(R.id.number_token)
     EditText numberToken;
-    private Unbinder mUnnbinder;
+    private Unbinder mUnbinder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        mUnnbinder = ButterKnife.bind(this);
+        mUnbinder = ButterKnife.bind(this);
         mLoadingDialogFragment = LoadingDialogFragment.newInstance();
         mZafeplace = Zafeplace.getInstance(this);
-        numCoin = findViewById(R.id.nuber_coin);
-        numberToken = findViewById(R.id.number_token);
     }
 
     @Override
@@ -124,17 +125,17 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
 
     @Override
     public void onErrorSmartRaw(Throwable error) {
-        Toast.makeText(this, "Error geting list abi = " + error.getMessage(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Error getting list abi = " + error.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onExecuteContract(String result) {
-        Toast.makeText(this, "result tokens balans  = " + result, Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "result tokens balance  = " + result, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onErrorExecuteConract(Throwable e) {
-        Toast.makeText(this, "error geting tokens balans  = " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "error getting tokens balance  = " + e.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
     public void generateWallet(View view) {
@@ -145,20 +146,20 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         if (mZafeplace.isIdentityExist(ETH_WALLET)) {
             mZafeplace.getWalletBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), new OnGetWalletBalance() {
                 @Override
-                public void onWalletBalance(BalanceModel balans) {
+                public void onWalletBalance(BalanceModel balance) {
                     mLoadingDialogFragment.dismiss();
-                    Toast.makeText(EthSampleActivity.this, "Balans = " + balans.result, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EthSampleActivity.this, "balance = " + balance.result, Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
                 public void onErrorWalletBalance(Throwable error) {
                     mLoadingDialogFragment.dismiss();
-                    Toast.makeText(EthSampleActivity.this, "Balans error = " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EthSampleActivity.this, "balance error = " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
             mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
         } else {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -166,13 +167,13 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         if (mZafeplace.isIdentityExist(ETH_WALLET)) {
             mZafeplace.getTokenBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), new OnGetTokenBalance() {
                 @Override
-                public void onTokenBalance(List<ResultToken> tokenBalans) {
+                public void onTokenBalance(List<ResultToken> tokenbalance) {
                     mLoadingDialogFragment.dismiss();
                     StringBuilder stringBuilder = new StringBuilder();
-                    for (ResultToken resultToken : tokenBalans) {
+                    for (ResultToken resultToken : tokenbalance) {
                         stringBuilder.append(resultToken.toString()).append("\n");
                     }
-                    Toast.makeText(EthSampleActivity.this, "Token balans " + stringBuilder.toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(EthSampleActivity.this, "Token balance " + stringBuilder.toString(), Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -183,7 +184,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
             });
             mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
         } else {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -194,7 +195,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         } else if (numCoin.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
         } else if (!mZafeplace.isIdentityExist(ETH_WALLET)) {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -205,7 +206,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         } else if (numberToken.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
         } else if (!mZafeplace.isIdentityExist(ETH_WALLET)) {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -213,7 +214,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         if (mZafeplace.isIdentityExist(ETH_WALLET)) {
             mZafeplace.getSmartContractTransactionRaw(ETH_WALLET, this);
         } else {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -226,7 +227,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
             mZafeplace.executeSmartContractMethod(ETH_WALLET, true, "balanceOf",
                     mZafeplace.getWallet(ETH_WALLET).getAddress(), list, this);
         } else {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -237,7 +238,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
 
     @Override
     protected void onDestroy() {
-        mUnnbinder.unbind();
+        mUnbinder.unbind();
         super.onDestroy();
     }
 }

@@ -2,13 +2,11 @@ package com.zafeplace.sdk;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
-import android.util.Base64;
 import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.WindowManager;
@@ -38,17 +36,11 @@ import com.zafeplace.sdk.server.models.ResultToken;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TokenBalans;
 import com.zafeplace.sdk.server.models.TransactionRaw;
-import com.zafeplace.sdk.stellarsdk.sdk.AssetTypeNative;
 import com.zafeplace.sdk.stellarsdk.sdk.KeyPair;
-import com.zafeplace.sdk.stellarsdk.sdk.Memo;
 import com.zafeplace.sdk.stellarsdk.sdk.Network;
-import com.zafeplace.sdk.stellarsdk.sdk.PaymentOperation;
 import com.zafeplace.sdk.stellarsdk.sdk.Server;
 import com.zafeplace.sdk.stellarsdk.sdk.Transaction;
-import com.zafeplace.sdk.stellarsdk.sdk.TransactionBuilderAccount;
-import com.zafeplace.sdk.stellarsdk.sdk.responses.AccountResponse;
 import com.zafeplace.sdk.stellarsdk.sdk.responses.SubmitTransactionResponse;
-import com.zafeplace.sdk.stellarsdk.sdk.xdr.XdrDataInputStream;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
 import com.zafeplace.sdk.utils.ParseUtils;
@@ -61,7 +53,6 @@ import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.http.HttpService;
 import org.web3j.utils.Numeric;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
@@ -226,39 +217,28 @@ public class Zafeplace {
                                 new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
                         byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
                         String hexValue = Numeric.toHexString(signedMessage);
-                        showDialog(hexValue, onMakeTransaction);
+                        showDialog(hexValue, onMakeTransaction, WalletTypes.ETH_WALLET);
                         break;
                     case STELLAR_WALLET:
                         new Thread() {
                             @Override
                             public void run() {
-                                TransactionRaw raw1 = response.body();
-                                Log.wtf("tag", "response " + raw1.toString());
-                                Log.wtf("TAG", "raw tx " + raw1.result.rawTx.result.rawTx);
-                                Server server = new Server("https://horizon-testnet.stellar.org");
-                                KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
-                                KeyPair destination = KeyPair.fromAccountId(addressRecipient);
                                 try {
+                                    TransactionRaw raw1 = response.body();
+                                    Server server = new Server("https://horizon-testnet.stellar.org");
                                     Network.useTestNetwork();
-                                    server.accounts().account(destination);
-                                    AccountResponse sourceAccount = server.accounts().account(source);
-                                    Transaction transaction = new Transaction.Builder(sourceAccount)
-                                            .addOperation(new PaymentOperation.Builder(destination, new AssetTypeNative(), String.valueOf(amount)).build())
-                                            .addMemo(Memo.text("Test Transaction"))
-                                            .build();
-                                    transaction.sign(source);
-                                    String xdrBase64Envelope = transaction.toEnvelopeXdrBase64();
-                                    Log.wtf("tag", "64 " + xdrBase64Envelope);
-                                    XdrDataInputStream is = new XdrDataInputStream(
-                                            new ByteArrayInputStream(
-                                                    Base64.decode(raw1.result.rawTx.result.rawTx, Base64.DEFAULT)
-                                            )
-                                    );
-                                    com.zafeplace.sdk.stellarsdk.sdk.xdr.Transaction tx2 = com.zafeplace.sdk.stellarsdk.sdk.xdr.Transaction.decode(is);
-                                    Transaction transaction1 = new Transaction.Builder(tx2.sourceAccount);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                    Log.wtf("tag", "error transaction " + e.getMessage());
+                                    KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
+                                    Transaction tx = Transaction.fromEnvelope(Transaction.decodeXdrEnvelope(raw1.result.rawTx.result.rawTx));
+                                    tx.sign(source);
+                                    SubmitTransactionResponse submitTransactionResponse = server.submitTransaction(tx);
+                                    Log.wtf("tag", "Success creating stellar transaction!");
+                                    Log.wtf("tag", submitTransactionResponse.getEnvelopeXdr() + " ---  "
+                                            + submitTransactionResponse.getHash() + " --- "
+                                            + submitTransactionResponse.getResultXdr());
+                                    mActivity.runOnUiThread(() -> showDialog(submitTransactionResponse.getEnvelopeXdr(), onMakeTransaction, WalletTypes.STELLAR_WALLET));
+                                } catch (Exception e) {
+                                    Log.wtf("tag", "Something went wrong!");
+                                    Log.wtf("tag", e.getMessage());
                                 }
                             }
                         }.start();
@@ -274,12 +254,12 @@ public class Zafeplace {
         });
     }
 
-    private void showDialog(final String message, final OnMakeTransaction onMakeTransaction) {
+    private void showDialog(final String message, final OnMakeTransaction onMakeTransaction, WalletTypes walletType) {
         final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
                 R.style.SimpleDialogTheme)).setTitle("Do you really want to do this transaction?").setNegativeButton("Cancel", (dialog, which) -> {
             onMakeTransaction.onBreakTransaction();
             dialog.dismiss();
-        }).setPositiveButton("Accept", (dialog, which) -> doTransaction(WalletTypes.ETH_WALLET, message, onMakeTransaction));
+        }).setPositiveButton("Accept", (dialog, which) -> doTransaction(walletType, message, onMakeTransaction));
         try {
             builder.show();
         } catch (WindowManager.BadTokenException e) {
@@ -314,7 +294,7 @@ public class Zafeplace {
                         new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
                 byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
                 String hexValue = Numeric.toHexString(signedMessage);
-                showDialog(hexValue, onMakeTransaction);
+                showDialog(hexValue, onMakeTransaction, WalletTypes.ETH_WALLET);
             }
 
             @Override
@@ -487,7 +467,6 @@ public class Zafeplace {
                     mActivity.runOnUiThread(() -> onWalletGenerateListener.onErrorGenerate(e));
                 }
             });
-
         }
     }
 

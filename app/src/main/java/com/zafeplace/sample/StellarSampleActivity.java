@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -50,20 +51,20 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
         if (mZafeplace.isIdentityExist(STELLAR_WALLET)) {
             mZafeplace.getWalletBalance(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(), new OnGetWalletBalance() {
                 @Override
-                public void onWalletBalance(BalanceModel balans) {
+                public void onWalletBalance(BalanceModel balance) {
                     mLoadingDialogFragment.dismiss();
-                    Toast.makeText(StellarSampleActivity.this, "Balans = " + balans.result, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(StellarSampleActivity.this, "balance = " + balance.result, Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
                 public void onErrorWalletBalance(Throwable error) {
                     mLoadingDialogFragment.dismiss();
-                    Toast.makeText(StellarSampleActivity.this, "Balans error = " + error.getMessage(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(StellarSampleActivity.this, "balance error = " + error.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             });
             mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
         } else {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -75,7 +76,7 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
         } else if (numberCoin.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
         } else if (!mZafeplace.isIdentityExist(STELLAR_WALLET)) {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -83,17 +84,17 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
         if (mZafeplace.isIdentityExist(STELLAR_WALLET)) {
             mZafeplace.getTokenBalance(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(), new OnGetTokenBalance() {
                 @Override
-                public void onTokenBalance(List<ResultToken> tokenBalans) {
+                public void onTokenBalance(List<ResultToken> tokenbalance) {
                     mLoadingDialogFragment.dismiss();
                     StringBuilder stringBuilder = new StringBuilder();
-                    if (tokenBalans.size() != 0) {
-                        for (ResultToken resultToken : tokenBalans) {
+                    if (tokenbalance.size() != 0) {
+                        for (ResultToken resultToken : tokenbalance) {
                             stringBuilder.append(resultToken.toString()).append("\n");
                         }
                     } else {
                         stringBuilder.append("empty");
                     }
-                    Toast.makeText(StellarSampleActivity.this, "Token balans " + stringBuilder.toString(), Toast.LENGTH_SHORT).show();
+                    Toast.makeText(StellarSampleActivity.this, "Token balance " + stringBuilder.toString(), Toast.LENGTH_SHORT).show();
                 }
 
                 @Override
@@ -104,7 +105,7 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
             });
             mLoadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
         } else {
-            Toast.makeText(this, "Please generete wallet at first", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
     }
 
@@ -147,12 +148,14 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
     @Override
     public void onSuccessTransaction(String res) {
         mLoadingDialogFragment.dismiss();
+        Log.wtf("tag", res);
         Toast.makeText(this, "Result transaction " + res, Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onErrorTransaction(Throwable error) {
         mLoadingDialogFragment.dismiss();
+        Log.wtf("tag", error.getMessage());
         Toast.makeText(this, "Error transaction " + error.getMessage(), Toast.LENGTH_SHORT).show();
     }
 
