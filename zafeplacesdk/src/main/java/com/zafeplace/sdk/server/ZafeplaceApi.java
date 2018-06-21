@@ -23,13 +23,16 @@ public class ZafeplaceApi {
 
     private Retrofit retrofit;
     private ZafeplaceApiService service;
+    private static ZafeplaceApi mZafeplaceApi;
 
     public static ZafeplaceApi getInstance(Context context) {
-        return new ZafeplaceApi(context);
+        if (mZafeplaceApi == null) {
+            mZafeplaceApi = new ZafeplaceApi(context);
+        }
+        return mZafeplaceApi;
     }
 
     private ZafeplaceApi(Context context) {
-
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .addInterceptor(new AuthRequestInterceptor(context))
                 .build();
@@ -46,8 +49,8 @@ public class ZafeplaceApi {
         return retrofit;
     }
 
-    public Call<LoginResponse> generateAccessToken(String packageName, String appSecret) {
-        return service.getAccessToken(packageName, appSecret);
+    public Call<LoginResponse> generateAccessToken(String appId, String appSecret) {
+        return service.getAccessToken(appId, appSecret);
     }
 
     public Call<BalanceModel> getWalletBalance(String walletType, String address) {

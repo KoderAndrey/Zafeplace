@@ -36,6 +36,9 @@ public class LoginActivity extends AppCompatActivity {
     private boolean mIsRegistrtation;
     private Unbinder mUnbinder;
 
+    private static final String APP_SECRET = "756496e0a7d900ade56913cc098749ee";
+    private static final String APP_ID = "747231411253949";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -126,8 +129,7 @@ public class LoginActivity extends AppCompatActivity {
         if (mZafeplace.getAccessToken() == null) {
             final LoadingDialogFragment loadingDialogFragment = LoadingDialogFragment.newInstance();
             loadingDialogFragment.show(getSupportFragmentManager(), LoadingDialogFragment.TAG);
-            mZafeplace.generateAccessToken("com.zafeplace.sample",
-                    "756496e0a7d900ade56913cc098749ee",
+            mZafeplace.generateAccessToken(APP_ID, APP_SECRET,
                     new OnAccessTokenListener() {
                         @Override
                         public void onGetToken(String response) {

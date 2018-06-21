@@ -32,7 +32,8 @@ public interface ZafeplaceApiService {
 
     @GET("/app/{network}/account/token-balance")
     Call<TokenBalans> getTokenBalance(@Path("network") String walletType,
-                                      @Query("address") String address);
+                                      @Query("addre" +
+                                              "ss") String address);
 
     @GET("/app/{network}/account/native-coin/rawtx")
     Call<TransactionRaw> getTransactionRaw(@Path("network") String walletType,

@@ -115,9 +115,9 @@ public class Zafeplace {
         mExecutor = Executors.newSingleThreadExecutor();
     }
 
-    public void generateAccessToken(String packageName, String appSecret, final OnAccessTokenListener onAccessTokenListener) {
+    public void generateAccessToken(String appId, String appSecret, final OnAccessTokenListener onAccessTokenListener) {
 
-        ZafeplaceApi.getInstance(mActivity).generateAccessToken(packageName, appSecret).enqueue(new Callback<LoginResponse>() {
+        ZafeplaceApi.getInstance(mActivity).generateAccessToken(appId, appSecret).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {
                 if (response.isSuccessful()) {
@@ -289,12 +289,41 @@ public class Zafeplace {
             @Override
             public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
                 TransactionRaw raw = response.body();
-                Credentials credentials = Credentials.create(mManager.getEthWallet(mActivity).getPrivateKey());
-                RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
-                        new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
-                byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
-                String hexValue = Numeric.toHexString(signedMessage);
-                showDialog(hexValue, onMakeTransaction, WalletTypes.ETH_WALLET);
+                switch (walletType) {
+                    case ETH_WALLET:
+                        Credentials credentials = Credentials.create(mManager.getEthWallet(mActivity).getPrivateKey());
+                        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
+                                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
+                        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+                        String hexValue = Numeric.toHexString(signedMessage);
+                        showDialog(hexValue, onMakeTransaction, WalletTypes.ETH_WALLET);
+                        break;
+                    case STELLAR_WALLET:
+                        new Thread() {
+                            @Override
+                            public void run() {
+                                try {
+                                    TransactionRaw raw1 = response.body();
+                                    Server server = new Server("https://horizon-testnet.stellar.org");
+                                    Network.useTestNetwork();
+                                   // KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
+                                    KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
+                                    Transaction tx = Transaction.fromEnvelope(Transaction.decodeXdrEnvelope(raw1.result.rawTx.result.rawTx));
+                                    tx.sign(source);
+                                    SubmitTransactionResponse submitTransactionResponse = server.submitTransaction(tx);
+                                    Log.wtf("tag", "Success creating stellar transaction!");
+                                    Log.wtf("tag", submitTransactionResponse.getEnvelopeXdr() + " ---  "
+                                            + submitTransactionResponse.getHash() + " --- "
+                                            + submitTransactionResponse.getResultXdr());
+                                    mActivity.runOnUiThread(() -> showDialog(submitTransactionResponse.getEnvelopeXdr(), onMakeTransaction, WalletTypes.STELLAR_WALLET));
+                                } catch (Exception e) {
+                                    Log.wtf("tag", "Something went wrong!");
+                                    Log.wtf("tag", e.getMessage());
+                                }
+                            }
+                        }.start();
+                        break;
+                }
             }
 
             @Override

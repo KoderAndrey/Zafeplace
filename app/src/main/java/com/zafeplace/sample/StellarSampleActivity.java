@@ -80,6 +80,18 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
         }
     }
 
+    public void createTokenTransactionStellar(View view) {
+        if (mZafeplace.isIdentityExist(STELLAR_WALLET) && !numberTokens.getText().toString().equals("")) {
+            mZafeplace.createTransactionToken(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(),
+                    "GBHQ7TFBFEWJVLT4VTEZI2ISOVYSJFGM6TJJTHDSJZQBY65ARQRCYOP5",
+                    Integer.parseInt(numberTokens.getText().toString()), this);
+        } else if (numberCoin.getText().toString().equals("")) {
+            Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
+        } else if (!mZafeplace.isIdentityExist(STELLAR_WALLET)) {
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
+        }
+    }
+
     public void getTokenBalanceStellar(View view) {
         if (mZafeplace.isIdentityExist(STELLAR_WALLET)) {
             mZafeplace.getTokenBalance(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(), new OnGetTokenBalance() {
