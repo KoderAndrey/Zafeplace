@@ -22,7 +22,9 @@ import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
 import com.zafeplace.sdk.callbacks.OnSmartContractRawList;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
+import com.zafeplace.sdk.managers.EthereumManager;
 import com.zafeplace.sdk.managers.PreferencesManager;
+import com.zafeplace.sdk.managers.StellarManager;
 import com.zafeplace.sdk.models.EthWallet;
 import com.zafeplace.sdk.models.Wallet;
 import com.zafeplace.sdk.server.ZafeplaceApi;
@@ -87,6 +89,8 @@ public class Zafeplace {
     private AlertDialog mAlert = null;
     private FingerPrintLogin mFingerPrintLogin;
     private boolean mIsCancelClicked;
+    private StellarManager mStellarManager;
+    private EthereumManager mEthereumManager;
 
     public enum WalletTypes {
         ETH_WALLET,
@@ -113,6 +117,8 @@ public class Zafeplace {
         this.mActivity = context;
         mManager = new PreferencesManager();
         mExecutor = Executors.newSingleThreadExecutor();
+        mStellarManager = new StellarManager();
+        mEthereumManager = new EthereumManager();
     }
 
     public void generateAccessToken(String appId, String appSecret, final OnAccessTokenListener onAccessTokenListener) {
@@ -143,39 +149,25 @@ public class Zafeplace {
 
 
     public void getWalletBalance(WalletTypes walletType, String address, final OnGetWalletBalance onGetWalletBalance) {
-        ZafeplaceApi.getInstance(mActivity).getWalletBalance(getWalletName(walletType), address).enqueue(new Callback<BalanceModel>() {
-            @Override
-            public void onResponse(Call<BalanceModel> call, Response<BalanceModel> response) {
-                Log.wtf("tag", "result " + response.body().toString());
-                onGetWalletBalance.onWalletBalance(response.body());
-            }
-
-            @Override
-            public void onFailure(Call<BalanceModel> call, Throwable t) {
-                onGetWalletBalance.onErrorWalletBalance(t);
-            }
-        });
+        switch (walletType) {
+            case STELLAR_WALLET:
+                mStellarManager.getWalletBalance(address, onGetWalletBalance, mActivity);
+                break;
+            case ETH_WALLET:
+                mEthereumManager.getWalletBalance(address, onGetWalletBalance, mActivity);
+                break;
+        }
     }
 
     public void getTokenBalance(WalletTypes walletType, String address, final OnGetTokenBalance onGetTokenBalance) {
-        ZafeplaceApi.getInstance(mActivity).getTokenBalance(getWalletName(walletType), address).enqueue(new Callback<TokenBalans>() {
-            @Override
-            public void onResponse(Call<TokenBalans> call, Response<TokenBalans> response) {
-                try {
-                    TokenBalans tokenBalans = response.body();
-                    Log.wtf("tag", "result stellar " + tokenBalans.toString());
-                    List<ResultToken> resultTokens = tokenBalans.result;
-                    onGetTokenBalance.onTokenBalance(resultTokens);
-                } catch (Exception e) {
-                    onGetTokenBalance.onErrorTokenBalance(e);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<TokenBalans> call, Throwable t) {
-                onGetTokenBalance.onErrorTokenBalance(t);
-            }
-        });
+        switch (walletType) {
+            case ETH_WALLET:
+                mEthereumManager.getTokenBalance(address, onGetTokenBalance, mActivity);
+                break;
+            case STELLAR_WALLET:
+                mStellarManager.getTokenBalance(address, onGetTokenBalance, mActivity);
+                break;
+        }
     }
 
     public void getSmartContractTransactionRaw(final WalletTypes walletType, final OnSmartContractRawList onSmartContractRaw) {
@@ -306,7 +298,7 @@ public class Zafeplace {
                                     TransactionRaw raw1 = response.body();
                                     Server server = new Server("https://horizon-testnet.stellar.org");
                                     Network.useTestNetwork();
-                                   // KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
+                                    // KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
                                     KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
                                     Transaction tx = Transaction.fromEnvelope(Transaction.decodeXdrEnvelope(raw1.result.rawTx.result.rawTx));
                                     tx.sign(source);
@@ -398,7 +390,7 @@ public class Zafeplace {
                 fingerprintLogin((message, isSuccess) -> {
                     if (isSuccess) {
                         closeDialog();
-                        generatingStellarWallet(onWalletGenerateListener);
+                        mStellarManager.generateWallet(onWalletGenerateListener, mActivity, isLoggedIn());
                         onWalletGenerateListener.onStartGenerate();
                     } else {
                         if (!mIsCancelClicked) {
@@ -425,7 +417,7 @@ public class Zafeplace {
             switch (getAuthType()) {
                 case PIN_AUTH: {
                     if (mInput.getText().toString().equals(getPinCode())) {
-                        generatingStellarWallet(onWalletGenerateListener);
+                        mStellarManager.generateWallet(onWalletGenerateListener, mActivity, isLoggedIn());
                         onWalletGenerateListener.onStartGenerate();
                     } else {
                         Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
@@ -445,59 +437,6 @@ public class Zafeplace {
         });
     }
 
-
-    private void generatingStellarWallet(OnWalletGenerateListener onWalletGenerateListener) {
-        KeyPair pair = KeyPair.random();
-        String secretSeed = new String(pair.getSecretSeed());
-        String accId = pair.getAccountId();
-        Log.wtf("tag", "acc id " + accId);
-        final String friendbotUrl = String.format(
-                "https://friendbot.stellar.org/?addr=%s",
-                pair.getAccountId());
-        Log.wtf("tag", "url " + friendbotUrl);
-        new Thread() {
-            @Override
-            public void run() {
-                InputStream response = null;
-                try {
-                    response = new URL(friendbotUrl).openStream();
-                    String body = new Scanner(response, "UTF-8").useDelimiter("\\A").next();
-                    mManager.setStellarWallet(secretSeed, accId, mActivity);
-                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onSuccessGenerate(accId));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onErrorGenerate(e));
-                    Log.wtf("tag", "error " + e.getMessage());
-                } catch (Exception e) {
-                    onWalletGenerateListener.onErrorGenerate(e);
-                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onErrorGenerate(e));
-                }
-            }
-        }.start();
-    }
-
-    private void generateEthWallet(final OnWalletGenerateListener onWalletGenerateListener) {
-        if (ActivityCompat.checkSelfPermission(mActivity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            onWalletGenerateListener.onErrorGenerate(mActivity.getString(R.string.write_external_storage_permission_not_enabled));
-        } else if (!isLoggedIn()) {
-            onWalletGenerateListener.onErrorGenerate(mActivity.getString(R.string.you_need_auth_to_generate_wallet));
-        } else {
-            mExecutor.execute(() -> {
-                try {
-                    Web3jFactory.build(new HttpService(ETH_SERVICE_URL));
-                    String wallet = WalletUtils.generateLightNewWalletFile(ZAFEPLACE_PASSWORD, Environment.getExternalStorageDirectory());
-                    Credentials credentials = WalletUtils.loadCredentials(ZAFEPLACE_PASSWORD, Environment.getExternalStorageDirectory() + "/" + wallet);
-                    String privateKey = String.format("%x", credentials.getEcKeyPair().getPrivateKey());
-                    final String address = credentials.getAddress();
-                    mManager.setEthWallet(privateKey, address, mActivity);
-                    deleteFile(Environment.getExternalStorageDirectory() + "/" + wallet);
-                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onSuccessGenerate(address));
-                } catch (final Exception e) {
-                    mActivity.runOnUiThread(() -> onWalletGenerateListener.onErrorGenerate(e));
-                }
-            });
-        }
-    }
 
     public void executeSmartContractMethod(WalletTypes walletType, boolean isConsatant, String nameFunk, String sender,
                                            List<MethodParamsSmart> methodParamsSmarts,
@@ -604,7 +543,7 @@ public class Zafeplace {
                 fingerprintLogin((message, isSuccess) -> {
                     if (isSuccess) {
                         closeDialog();
-                        generateEthWallet(onWalletGenerateListener);
+                        mEthereumManager.generateWallet(onWalletGenerateListener, mActivity, isLoggedIn());
                         onWalletGenerateListener.onStartGenerate();
                     } else {
                         if (!mIsCancelClicked) {
@@ -631,7 +570,7 @@ public class Zafeplace {
             switch (getAuthType()) {
                 case PIN_AUTH: {
                     if (mInput.getText().toString().equals(getPinCode())) {
-                        generateEthWallet(onWalletGenerateListener);
+                        mEthereumManager.generateWallet(onWalletGenerateListener, mActivity, isLoggedIn());
                         onWalletGenerateListener.onStartGenerate();
                     } else {
                         Toast.makeText(mActivity, "Wrong Pin!", Toast.LENGTH_SHORT).show();
