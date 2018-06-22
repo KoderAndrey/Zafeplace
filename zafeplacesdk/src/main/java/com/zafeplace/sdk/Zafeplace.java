@@ -1,20 +1,13 @@
 package com.zafeplace.sdk;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.pm.PackageManager;
-import android.os.Environment;
-import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.text.InputType;
-import android.util.Log;
 import android.view.ContextThemeWrapper;
-import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
-import com.google.gson.JsonObject;
 import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
 import com.zafeplace.sdk.callbacks.OnExecuteMethodSmartContract;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
@@ -28,42 +21,15 @@ import com.zafeplace.sdk.managers.StellarManager;
 import com.zafeplace.sdk.models.EthWallet;
 import com.zafeplace.sdk.models.Wallet;
 import com.zafeplace.sdk.server.ZafeplaceApi;
-import com.zafeplace.sdk.server.models.Abi;
-import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.ContractModel;
 import com.zafeplace.sdk.server.models.LoginResponse;
 import com.zafeplace.sdk.server.models.MethodParamsSmart;
 import com.zafeplace.sdk.server.models.ResultModel;
-import com.zafeplace.sdk.server.models.ResultToken;
-import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
-import com.zafeplace.sdk.server.models.TokenBalans;
-import com.zafeplace.sdk.server.models.TransactionRaw;
-import com.zafeplace.sdk.stellarsdk.sdk.KeyPair;
-import com.zafeplace.sdk.stellarsdk.sdk.Network;
-import com.zafeplace.sdk.stellarsdk.sdk.Server;
-import com.zafeplace.sdk.stellarsdk.sdk.Transaction;
-import com.zafeplace.sdk.stellarsdk.sdk.responses.SubmitTransactionResponse;
 import com.zafeplace.sdk.utils.FingerPrintLogin;
 import com.zafeplace.sdk.utils.FingerprintHandler;
-import com.zafeplace.sdk.utils.ParseUtils;
 
-import org.web3j.crypto.Credentials;
-import org.web3j.crypto.RawTransaction;
-import org.web3j.crypto.TransactionEncoder;
-import org.web3j.crypto.WalletUtils;
-import org.web3j.protocol.Web3jFactory;
-import org.web3j.protocol.http.HttpService;
-import org.web3j.utils.Numeric;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -71,21 +37,17 @@ import retrofit2.Response;
 
 import static com.zafeplace.sdk.Constants.AuthType.FINGERPRINT_AUTH;
 import static com.zafeplace.sdk.Constants.AuthType.PIN_AUTH;
-import static com.zafeplace.sdk.Constants.ETH_SERVICE_URL;
 import static com.zafeplace.sdk.Constants.WalletType.ETH;
 import static com.zafeplace.sdk.Constants.ZAFEPLACE_PASSWORD;
 import static com.zafeplace.sdk.utils.AppUtils.isNull;
 import static com.zafeplace.sdk.utils.EncryptionUtils.decryption;
 import static com.zafeplace.sdk.utils.EncryptionUtils.encryption;
-import static com.zafeplace.sdk.utils.StorageUtils.deleteFile;
-import static com.zafeplace.sdk.utils.WalletUtils.getWalletName;
 
 public class Zafeplace {
 
     private Activity mActivity;
     private EditText mInput;
     private PreferencesManager mManager;
-    private ExecutorService mExecutor;
     private AlertDialog mAlert = null;
     private FingerPrintLogin mFingerPrintLogin;
     private boolean mIsCancelClicked;
@@ -116,7 +78,6 @@ public class Zafeplace {
     private Zafeplace(Activity context) {
         this.mActivity = context;
         mManager = new PreferencesManager();
-        mExecutor = Executors.newSingleThreadExecutor();
         mStellarManager = new StellarManager();
         mEthereumManager = new EthereumManager();
     }
@@ -170,25 +131,8 @@ public class Zafeplace {
         }
     }
 
-    public void getSmartContractTransactionRaw(final WalletTypes walletType, final OnSmartContractRawList onSmartContractRaw) {
-        ZafeplaceApi.getInstance(mActivity).getSmartContractRaw(getWalletName(walletType)).enqueue(new Callback<SmartContractTransactionRaw>() {
-            @Override
-            public void onResponse(Call<SmartContractTransactionRaw> call, Response<SmartContractTransactionRaw> response) {
-                try {
-                    SmartContractTransactionRaw mes = response.body();
-                    List<Abi> abis = mes.result.abi;
-                    onSmartContractRaw.onGetSmartContractAbiList(abis);
-                } catch (Exception e) {
-                    onSmartContractRaw.onErrorSmartRaw(e);
-                    e.printStackTrace();
-                }
-            }
-
-            @Override
-            public void onFailure(Call<SmartContractTransactionRaw> call, Throwable t) {
-                onSmartContractRaw.onErrorSmartRaw(t);
-            }
-        });
+    public void getSmartContractTransactionRaw(final OnSmartContractRawList onSmartContractRaw) {
+        mEthereumManager.getSmartContractTransactionRaw(mActivity, onSmartContractRaw);
     }
 
     public void createTransaction(WalletTypes walletType, String addressSender, String addressRecipient, double amount,
@@ -198,75 +142,13 @@ public class Zafeplace {
 
     private void makeTransaction(WalletTypes walletType, String addressSender, String addressRecipient, double amount,
                                  final OnMakeTransaction onMakeTransaction) {
-        ZafeplaceApi.getInstance(mActivity).getRawTransaction(getWalletName(walletType), addressSender, addressRecipient, amount).enqueue(new Callback<TransactionRaw>() {
-            @Override
-            public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
-                switch (walletType) {
-                    case ETH_WALLET:
-                        TransactionRaw raw = response.body();
-                        Credentials credentials = Credentials.create(mManager.getEthWallet(mActivity).getPrivateKey());
-                        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
-                                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
-                        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
-                        String hexValue = Numeric.toHexString(signedMessage);
-                        showDialog(hexValue, onMakeTransaction, WalletTypes.ETH_WALLET);
-                        break;
-                    case STELLAR_WALLET:
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    TransactionRaw raw1 = response.body();
-                                    Server server = new Server("https://horizon-testnet.stellar.org");
-                                    Network.useTestNetwork();
-                                    KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
-                                    Transaction tx = Transaction.fromEnvelope(Transaction.decodeXdrEnvelope(raw1.result.rawTx.result.rawTx));
-                                    tx.sign(source);
-                                    SubmitTransactionResponse submitTransactionResponse = server.submitTransaction(tx);
-                                    Log.wtf("tag", "Success creating stellar transaction!");
-                                    Log.wtf("tag", submitTransactionResponse.getEnvelopeXdr() + " ---  "
-                                            + submitTransactionResponse.getHash() + " --- "
-                                            + submitTransactionResponse.getResultXdr());
-                                    mActivity.runOnUiThread(() -> showDialog(submitTransactionResponse.getEnvelopeXdr(), onMakeTransaction, WalletTypes.STELLAR_WALLET));
-                                } catch (Exception e) {
-                                    Log.wtf("tag", "Something went wrong!");
-                                    Log.wtf("tag", e.getMessage());
-                                }
-                            }
-                        }.start();
-                        break;
-                }
-            }
-
-            @Override
-            public void onFailure(Call<TransactionRaw> call, Throwable t) {
-                onMakeTransaction.onBreakTransaction();
-                showErrorDialog(t.getMessage());
-            }
-        });
-    }
-
-    private void showDialog(final String message, final OnMakeTransaction onMakeTransaction, WalletTypes walletType) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
-                R.style.SimpleDialogTheme)).setTitle("Do you really want to do this transaction?").setNegativeButton("Cancel", (dialog, which) -> {
-            onMakeTransaction.onBreakTransaction();
-            dialog.dismiss();
-        }).setPositiveButton("Accept", (dialog, which) -> doTransaction(walletType, message, onMakeTransaction));
-        try {
-            builder.show();
-        } catch (WindowManager.BadTokenException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void showErrorDialog(final String message) {
-        final AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(mActivity,
-                R.style.SimpleDialogTheme)).setTitle("Error transaction " + message).setNeutralButton("Ok", (dialog, which) -> dialog.dismiss());
-        builder.setMessage(message);
-        try {
-            builder.show();
-        } catch (WindowManager.BadTokenException e) {
-            e.printStackTrace();
+        switch (walletType) {
+            case ETH_WALLET:
+                mEthereumManager.makeTransaction(addressSender, addressRecipient, amount, onMakeTransaction, mActivity);
+                break;
+            case STELLAR_WALLET:
+                mStellarManager.makeTransaction(addressSender, addressRecipient, amount, onMakeTransaction, mActivity);
+                break;
         }
     }
 
@@ -275,74 +157,16 @@ public class Zafeplace {
         checkPinTokenTransaction(walletType, addressSender, addressRecipient, amount, onMakeTransaction);
     }
 
-    public void makeTransactionToken(WalletTypes walletType, String addressSender, String addressRecipient, int amount,
-                                     final OnMakeTransaction onMakeTransaction) {
-        ZafeplaceApi.getInstance(mActivity).getTokenTransactionRaw(getWalletName(walletType), addressSender, addressRecipient, amount).enqueue(new Callback<TransactionRaw>() {
-            @Override
-            public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
-                TransactionRaw raw = response.body();
-                switch (walletType) {
-                    case ETH_WALLET:
-                        Credentials credentials = Credentials.create(mManager.getEthWallet(mActivity).getPrivateKey());
-                        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
-                                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
-                        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
-                        String hexValue = Numeric.toHexString(signedMessage);
-                        showDialog(hexValue, onMakeTransaction, WalletTypes.ETH_WALLET);
-                        break;
-                    case STELLAR_WALLET:
-                        new Thread() {
-                            @Override
-                            public void run() {
-                                try {
-                                    TransactionRaw raw1 = response.body();
-                                    Server server = new Server("https://horizon-testnet.stellar.org");
-                                    Network.useTestNetwork();
-                                    // KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
-                                    KeyPair source = KeyPair.fromSecretSeed(mManager.getStellarWallet(mActivity).getSecretSeed());
-                                    Transaction tx = Transaction.fromEnvelope(Transaction.decodeXdrEnvelope(raw1.result.rawTx.result.rawTx));
-                                    tx.sign(source);
-                                    SubmitTransactionResponse submitTransactionResponse = server.submitTransaction(tx);
-                                    Log.wtf("tag", "Success creating stellar transaction!");
-                                    Log.wtf("tag", submitTransactionResponse.getEnvelopeXdr() + " ---  "
-                                            + submitTransactionResponse.getHash() + " --- "
-                                            + submitTransactionResponse.getResultXdr());
-                                    mActivity.runOnUiThread(() -> showDialog(submitTransactionResponse.getEnvelopeXdr(), onMakeTransaction, WalletTypes.STELLAR_WALLET));
-                                } catch (Exception e) {
-                                    Log.wtf("tag", "Something went wrong!");
-                                    Log.wtf("tag", e.getMessage());
-                                }
-                            }
-                        }.start();
-                        break;
-                }
-            }
-
-            @Override
-            public void onFailure(Call<TransactionRaw> call, Throwable t) {
-                onMakeTransaction.onBreakTransaction();
-                showErrorDialog(t.getMessage());
-            }
-        });
-    }
-
-    private void doTransaction(WalletTypes walletType, String signTx, final OnMakeTransaction onMakeTransaction) {
-        ZafeplaceApi.getInstance(mActivity).doTransaction(signTx, getWalletName(walletType)).enqueue(new Callback<JsonObject>() {
-            @Override
-            public void onResponse(Call<JsonObject> call, Response<JsonObject> response) {
-                try {
-                    onMakeTransaction.onSuccessTransaction(ParseUtils.transactionMessage(response.body()));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    onMakeTransaction.onErrorTransaction(e);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<JsonObject> call, Throwable t) {
-                onMakeTransaction.onErrorTransaction(t);
-            }
-        });
+    private void makeTransactionToken(WalletTypes walletType, String addressSender, String addressRecipient, int amount,
+                                      final OnMakeTransaction onMakeTransaction) {
+        switch (walletType) {
+            case ETH_WALLET:
+                mEthereumManager.makeTransactionToken(addressSender, addressRecipient, amount, onMakeTransaction, mActivity);
+                break;
+            case STELLAR_WALLET:
+                mStellarManager.makeTransactionToken(addressSender, addressRecipient, amount, onMakeTransaction, mActivity);
+                break;
+        }
     }
 
     public void fingerprintLogin(FingerprintHandler.FingerprintAuthenticationCallback fingerprintAuthenticationCallback) {
@@ -438,42 +262,10 @@ public class Zafeplace {
     }
 
 
-    public void executeSmartContractMethod(WalletTypes walletType, boolean isConsatant, String nameFunk, String sender,
+    public void executeSmartContractMethod(String nameFunk, String sender,
                                            List<MethodParamsSmart> methodParamsSmarts,
                                            OnExecuteMethodSmartContract onExecuteMethodSmartContract) {
-        StringBuilder stringBuilder = new StringBuilder();
-        int size = methodParamsSmarts.size();
-        for (int i = 0; i < size; i++) {
-            if (size == 1) {
-                stringBuilder.append("[" + methodParamsSmarts.get(0).toString() + "]");
-            } else {
-
-                if (i == 0) {
-                    stringBuilder.append("[" + methodParamsSmarts.get(0).toString() + ",");
-                } else if (i == size - 1) {
-                    stringBuilder.append(methodParamsSmarts.get(i).toString() + "]");
-                } else {
-                    stringBuilder.append(methodParamsSmarts.get(i).toString() + ",");
-                }
-            }
-        }
-        String resultCon = stringBuilder.toString();
-        ContractModel contractModel = new ContractModel(sender, nameFunk, resultCon);
-        ZafeplaceApi.getInstance(mActivity).executeContractInformationMethod("ethereum", contractModel).enqueue(new Callback<ResultModel>() {
-            @Override
-            public void onResponse(Call<ResultModel> call, Response<ResultModel> response) {
-                try {
-                    onExecuteMethodSmartContract.onExecuteContract(response.body().result);
-                } catch (Exception e) {
-                    onExecuteMethodSmartContract.onErrorExecuteConract(e);
-                }
-            }
-
-            @Override
-            public void onFailure(Call<ResultModel> call, Throwable t) {
-                onExecuteMethodSmartContract.onErrorExecuteConract(t);
-            }
-        });
+        mEthereumManager.executeSmartContractMethod(nameFunk, sender, methodParamsSmarts, onExecuteMethodSmartContract, mActivity);
     }
 
     public void saveUserData(String firstName, String secondName, String email, String

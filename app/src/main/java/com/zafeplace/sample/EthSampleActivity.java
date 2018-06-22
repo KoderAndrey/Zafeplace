@@ -212,7 +212,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
 
     public void getListSmartContracts(View view) {
         if (mZafeplace.isIdentityExist(ETH_WALLET)) {
-            mZafeplace.getSmartContractTransactionRaw(ETH_WALLET, this);
+            mZafeplace.getSmartContractTransactionRaw(this);
         } else {
             Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
         }
@@ -224,7 +224,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
                     = new ArrayList<>(Arrays
                     .asList(new MethodParamsSmart("tokenOwner",
                             mZafeplace.getWallet(ETH_WALLET).getAddress())));
-            mZafeplace.executeSmartContractMethod(ETH_WALLET, true, "balanceOf",
+            mZafeplace.executeSmartContractMethod("balanceOf",
                     mZafeplace.getWallet(ETH_WALLET).getAddress(), list, this);
         } else {
             Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
