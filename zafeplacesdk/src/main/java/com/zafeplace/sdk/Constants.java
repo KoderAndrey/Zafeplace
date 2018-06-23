@@ -8,12 +8,17 @@ public interface Constants {
 
     }
 
-    interface AuthType{
+    interface TransactionType {
+        int TOKEN_TRANSACTION = 11;
+        int COIN_TRANSACTION = 12;
+    }
+
+    interface AuthType {
         int FINGERPRINT_AUTH = 0;
         int PIN_AUTH = 1;
     }
 
-    interface WalletType{
+    interface WalletType {
         String ETH = "ethereum";
         String STELLAR = "stellar";
     }

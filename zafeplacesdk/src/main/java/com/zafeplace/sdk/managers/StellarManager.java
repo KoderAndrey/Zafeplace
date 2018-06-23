@@ -1,9 +1,9 @@
 package com.zafeplace.sdk.managers;
 
 import android.app.Activity;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
-import com.zafeplace.sdk.WalletManager;
 import com.zafeplace.sdk.Zafeplace;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
@@ -30,13 +30,11 @@ import static com.zafeplace.sdk.utils.WalletUtils.getWalletName;
 
 public class StellarManager extends WalletManager {
 
-
     @Override
     public void generateWallet(OnWalletGenerateListener onWalletGenerateListener, Activity activity, boolean isLoggedIn) {
         KeyPair pair = KeyPair.random();
         String secretSeed = new String(pair.getSecretSeed());
         String accId = pair.getAccountId();
-        Log.wtf("tag", "acc id " + accId);
         final String friendbotUrl = String.format(
                 "https://friendbot.stellar.org/?addr=%s",
                 pair.getAccountId());
@@ -100,7 +98,7 @@ public class StellarManager extends WalletManager {
             }
 
             @Override
-            public void onFailure(Call<TransactionRaw> call, Throwable t) {
+            public void onFailure(@NonNull Call<TransactionRaw> call, @NonNull Throwable t) {
                 onMakeTransaction.onBreakTransaction();
                 showErrorDialog(t.getMessage(), activity);
             }
@@ -128,8 +126,6 @@ public class StellarManager extends WalletManager {
             activity.runOnUiThread(() -> showDialog(submitTransactionResponse.getEnvelopeXdr(),
                     onMakeTransaction, getWalletType(), activity));
         } catch (Exception e) {
-            Log.wtf("tag", "Something went wrong!");
-            Log.wtf("tag", e.getMessage());
             activity.runOnUiThread(() -> {
                 onMakeTransaction.onErrorTransaction(e);
             });

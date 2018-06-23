@@ -191,7 +191,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
     public void createTransaction(View view) {
         if (mZafeplace.isIdentityExist(ETH_WALLET) && !numCoin.getText().toString().equals("")) {
             mZafeplace.createTransaction(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(),
-                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", Double.parseDouble(numCoin.getText().toString()), this);
+                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", numCoin.getText().toString(), this);
         } else if (numCoin.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
         } else if (!mZafeplace.isIdentityExist(ETH_WALLET)) {
@@ -202,7 +202,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
     public void createTokenTransaction(View view) {
         if (mZafeplace.isIdentityExist(ETH_WALLET) && !numberToken.getText().toString().equals("")) {
             mZafeplace.createTransactionToken(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(),
-                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", Integer.parseInt(numberToken.getText().toString()), this);
+                    "0x41B964C9E439d5d5e06c30BA24DC3F9A53844C9A", numberToken.getText().toString(), this);
         } else if (numberToken.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
         } else if (!mZafeplace.isIdentityExist(ETH_WALLET)) {

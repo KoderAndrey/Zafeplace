@@ -8,7 +8,6 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 
 import com.zafeplace.sdk.R;
-import com.zafeplace.sdk.WalletManager;
 import com.zafeplace.sdk.Zafeplace;
 import com.zafeplace.sdk.callbacks.OnExecuteMethodSmartContract;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
@@ -121,7 +120,7 @@ public class EthereumManager extends WalletManager {
     public void getSmartContractTransactionRaw(Activity activity, OnSmartContractRawList onSmartContractRaw) {
         ZafeplaceApi.getInstance(activity).getSmartContractRaw(getWalletName(getWalletType())).enqueue(new Callback<SmartContractTransactionRaw>() {
             @Override
-            public void onResponse(Call<SmartContractTransactionRaw> call, Response<SmartContractTransactionRaw> response) {
+            public void onResponse(@NonNull Call<SmartContractTransactionRaw> call, @NonNull Response<SmartContractTransactionRaw> response) {
                 try {
                     SmartContractTransactionRaw mes = response.body();
                     List<Abi> abis = mes.result.abi;
@@ -133,7 +132,7 @@ public class EthereumManager extends WalletManager {
             }
 
             @Override
-            public void onFailure(Call<SmartContractTransactionRaw> call, Throwable t) {
+            public void onFailure(@NonNull Call<SmartContractTransactionRaw> call, @NonNull Throwable t) {
                 onSmartContractRaw.onErrorSmartRaw(t);
             }
         });
@@ -163,7 +162,7 @@ public class EthereumManager extends WalletManager {
         ContractModel contractModel = new ContractModel(sender, nameFunk, resultCon);
         ZafeplaceApi.getInstance(activity).executeContractInformationMethod("ethereum", contractModel).enqueue(new Callback<ResultModel>() {
             @Override
-            public void onResponse(Call<ResultModel> call, Response<ResultModel> response) {
+            public void onResponse(@NonNull Call<ResultModel> call, @NonNull Response<ResultModel> response) {
                 try {
                     onExecuteMethodSmartContract.onExecuteContract(response.body().result);
                 } catch (Exception e) {
@@ -172,7 +171,7 @@ public class EthereumManager extends WalletManager {
             }
 
             @Override
-            public void onFailure(Call<ResultModel> call, Throwable t) {
+            public void onFailure(@NonNull Call<ResultModel> call, @NonNull Throwable t) {
                 onExecuteMethodSmartContract.onErrorExecuteConract(t);
             }
         });
