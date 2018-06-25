@@ -237,7 +237,7 @@ public abstract class WalletManager {
                         onMakeTransaction.onStartTransaction();
                         switch (transactionType) {
                             case TOKEN_TRANSACTION:
-                                this.makeTransactionToken(addressSender, addressRecipient, Integer.parseInt(amount), onMakeTransaction, activity);
+                                this.makeTransactionToken(addressSender, addressRecipient, (int) Double.parseDouble(amount), onMakeTransaction, activity);
                                 break;
                             case COIN_TRANSACTION:
                                 this.makeTransaction(addressSender, addressRecipient, Double.parseDouble(amount), onMakeTransaction, activity);

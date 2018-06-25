@@ -65,6 +65,7 @@ public class Zafeplace {
     }
 
     private static Zafeplace instance;
+
     public static Zafeplace getInstance(Activity context) {
         if (instance == null) {
             instance = new Zafeplace(context);
@@ -134,38 +135,26 @@ public class Zafeplace {
         mEthereumManager.getSmartContractTransactionRaw(mActivity, onSmartContractRaw);
     }
 
-    public void createTransaction(WalletTypes walletType, String addressSender, String addressRecipient, String amount,
+    public void createTransaction(WalletTypes walletType, String addressSender, String addressRecipient, int amount,
                                   final OnMakeTransaction onMakeTransaction) {
         switch (walletType) {
             case STELLAR_WALLET:
-                mStellarManager.createTransaction(addressSender, addressRecipient, amount, onMakeTransaction, mActivity, COIN_TRANSACTION);
+                mStellarManager.createTransaction(addressSender, addressRecipient, String.valueOf(amount), onMakeTransaction, mActivity, COIN_TRANSACTION);
                 break;
             case ETH_WALLET:
-                mEthereumManager.createTransaction(addressSender, addressRecipient, amount, onMakeTransaction, mActivity, COIN_TRANSACTION);
+                mEthereumManager.createTransaction(addressSender, addressRecipient, String.valueOf(amount), onMakeTransaction, mActivity, COIN_TRANSACTION);
                 break;
         }
     }
 
-    private void makeTransaction(WalletTypes walletType, String addressSender, String addressRecipient, double amount,
-                                 final OnMakeTransaction onMakeTransaction) {
-        switch (walletType) {
-            case ETH_WALLET:
-                mEthereumManager.makeTransaction(addressSender, addressRecipient, amount, onMakeTransaction, mActivity);
-                break;
-            case STELLAR_WALLET:
-                mStellarManager.makeTransaction(addressSender, addressRecipient, amount, onMakeTransaction, mActivity);
-                break;
-        }
-    }
-
-    public void createTransactionToken(WalletTypes walletType, String addressSender, String addressRecipient, String amount,
+    public void createTransactionToken(WalletTypes walletType, String addressSender, String addressRecipient, double amount,
                                        final OnMakeTransaction onMakeTransaction) {
         switch (walletType) {
             case STELLAR_WALLET:
-                mStellarManager.createTransaction(addressSender, addressRecipient, amount, onMakeTransaction, mActivity, TOKEN_TRANSACTION);
+                mStellarManager.createTransaction(addressSender, addressRecipient, String.valueOf(amount), onMakeTransaction, mActivity, TOKEN_TRANSACTION);
                 break;
             case ETH_WALLET:
-                mEthereumManager.createTransaction(addressSender, addressRecipient, amount, onMakeTransaction, mActivity, TOKEN_TRANSACTION);
+                mEthereumManager.createTransaction(addressSender, addressRecipient, String.valueOf(amount), onMakeTransaction, mActivity, TOKEN_TRANSACTION);
                 break;
         }
     }

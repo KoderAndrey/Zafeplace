@@ -72,7 +72,7 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
         if (mZafeplace.isIdentityExist(STELLAR_WALLET) && !numberCoin.getText().toString().equals("")) {
             mZafeplace.createTransaction(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(),
                     "GBHQ7TFBFEWJVLT4VTEZI2ISOVYSJFGM6TJJTHDSJZQBY65ARQRCYOP5",
-                    numberCoin.getText().toString(), this);
+                    Integer.parseInt(numberCoin.getText().toString()), this);
         } else if (numberCoin.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
         } else if (!mZafeplace.isIdentityExist(STELLAR_WALLET)) {
@@ -84,7 +84,7 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
         if (mZafeplace.isIdentityExist(STELLAR_WALLET) && !numberTokens.getText().toString().equals("")) {
             mZafeplace.createTransactionToken(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(),
                     "GBHQ7TFBFEWJVLT4VTEZI2ISOVYSJFGM6TJJTHDSJZQBY65ARQRCYOP5",
-                    numberTokens.getText().toString(), this);
+                    Double.parseDouble(numberTokens.getText().toString()), this);
         } else if (numberCoin.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
         } else if (!mZafeplace.isIdentityExist(STELLAR_WALLET)) {
