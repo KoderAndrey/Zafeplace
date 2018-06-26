@@ -85,7 +85,7 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
             mZafeplace.createTransactionToken(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(),
                     "GBHQ7TFBFEWJVLT4VTEZI2ISOVYSJFGM6TJJTHDSJZQBY65ARQRCYOP5",
                     Double.parseDouble(numberTokens.getText().toString()), this);
-        } else if (numberCoin.getText().toString().equals("")) {
+        } else if (numberTokens.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
         } else if (!mZafeplace.isIdentityExist(STELLAR_WALLET)) {
             Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
@@ -96,11 +96,11 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
         if (mZafeplace.isIdentityExist(STELLAR_WALLET)) {
             mZafeplace.getTokenBalance(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(), new OnGetTokenBalance() {
                 @Override
-                public void onTokenBalance(List<ResultToken> tokenbalance) {
+                public void onTokenBalance(List<ResultToken> tokenBalance) {
                     mLoadingDialogFragment.dismiss();
                     StringBuilder stringBuilder = new StringBuilder();
-                    if (tokenbalance.size() != 0) {
-                        for (ResultToken resultToken : tokenbalance) {
+                    if (tokenBalance.size() != 0) {
+                        for (ResultToken resultToken : tokenBalance) {
                             stringBuilder.append(resultToken.toString()).append("\n");
                         }
                     } else {
@@ -140,11 +140,22 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
     @Override
     public void onErrorGenerate(Exception error) {
         Toast.makeText(this, "Error generating wallet " + error.getMessage(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onErrorGenerate(String errorMessage) {
-        Toast.makeText(this, "Error generating wallet " + errorMessage, Toast.LENGTH_SHORT).show();
+        new Thread() {
+            @Override
+            public void run() {
+                try {
+                    Thread.sleep(200);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLoadingDialogFragment.dismiss();
+                        }
+                    });
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }.start();
     }
 
     @Override

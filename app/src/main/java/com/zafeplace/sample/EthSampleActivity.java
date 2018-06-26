@@ -64,11 +64,6 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
 
     @Override
     public void onErrorGenerate(Exception error) {
-        Toast.makeText(this, "Error generating wallet " + error.getMessage(), Toast.LENGTH_SHORT).show();
-    }
-
-    @Override
-    public void onErrorGenerate(String error) {
         Toast.makeText(this, "Error generate wallet " + error, Toast.LENGTH_SHORT).show();
         new Thread() {
             @Override
@@ -167,10 +162,10 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         if (mZafeplace.isIdentityExist(ETH_WALLET)) {
             mZafeplace.getTokenBalance(ETH_WALLET, mZafeplace.getWallet(ETH_WALLET).getAddress(), new OnGetTokenBalance() {
                 @Override
-                public void onTokenBalance(List<ResultToken> tokenbalance) {
+                public void onTokenBalance(List<ResultToken> tokenBalance) {
                     mLoadingDialogFragment.dismiss();
                     StringBuilder stringBuilder = new StringBuilder();
-                    for (ResultToken resultToken : tokenbalance) {
+                    for (ResultToken resultToken : tokenBalance) {
                         stringBuilder.append(resultToken.toString()).append("\n");
                     }
                     Toast.makeText(EthSampleActivity.this, "Token balance " + stringBuilder.toString(), Toast.LENGTH_SHORT).show();
@@ -242,5 +237,5 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         super.onDestroy();
     }
 }
-//        "packageName": "com.zafeplace.sample",
-//        "appSecret": "756496e0a7d900ade56913cc098749ee"
+//        "appSecret":"756496e0a7d900ade56913cc098749ee",
+//        "appId":"747231411253949"

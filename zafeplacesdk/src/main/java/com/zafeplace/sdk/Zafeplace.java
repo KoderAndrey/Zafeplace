@@ -66,11 +66,11 @@ public class Zafeplace {
 
     private static Zafeplace instance;
 
-    public static Zafeplace getInstance(Activity context) {
+    public static Zafeplace getInstance(Activity activity) {
         if (instance == null) {
-            instance = new Zafeplace(context);
+            instance = new Zafeplace(activity);
         } else {
-            instance.mActivity = context;
+            instance.mActivity = activity;
         }
         return instance;
     }
@@ -168,7 +168,6 @@ public class Zafeplace {
         if (mFingerPrintLogin != null) {
             mFingerPrintLogin.stopAuth();
         }
-
     }
 
 

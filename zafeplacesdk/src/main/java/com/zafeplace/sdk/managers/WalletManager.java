@@ -16,9 +16,7 @@ import com.zafeplace.sdk.Zafeplace;
 import com.zafeplace.sdk.callbacks.OnGetTokenBalance;
 import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
-import com.zafeplace.sdk.callbacks.OnSmartContractRawList;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
-import com.zafeplace.sdk.managers.PreferencesManager;
 import com.zafeplace.sdk.server.ZafeplaceApi;
 import com.zafeplace.sdk.server.models.BalanceModel;
 import com.zafeplace.sdk.server.models.ResultToken;
@@ -271,7 +269,7 @@ public abstract class WalletManager {
                         onMakeTransaction.onStartTransaction();
                         switch (transactionType) {
                             case TOKEN_TRANSACTION:
-                                this.makeTransactionToken(addressSender, addressRecipient, Integer.parseInt(amount), onMakeTransaction, activity);
+                                this.makeTransactionToken(addressSender, addressRecipient, (int) Double.parseDouble(amount), onMakeTransaction, activity);
                                 break;
                             case COIN_TRANSACTION:
                                 this.makeTransaction(addressSender, addressRecipient, Double.parseDouble(amount), onMakeTransaction, activity);

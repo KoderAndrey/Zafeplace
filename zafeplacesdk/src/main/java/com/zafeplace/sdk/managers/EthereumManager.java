@@ -15,6 +15,7 @@ import com.zafeplace.sdk.callbacks.OnGetWalletBalance;
 import com.zafeplace.sdk.callbacks.OnMakeTransaction;
 import com.zafeplace.sdk.callbacks.OnSmartContractRawList;
 import com.zafeplace.sdk.callbacks.OnWalletGenerateListener;
+import com.zafeplace.sdk.exception.ZafeplaceException;
 import com.zafeplace.sdk.server.ZafeplaceApi;
 import com.zafeplace.sdk.server.models.Abi;
 import com.zafeplace.sdk.server.models.ContractModel;
@@ -48,9 +49,9 @@ public class EthereumManager extends WalletManager {
     @Override
     public void generateWallet(OnWalletGenerateListener onWalletGenerateListener, Activity activity, boolean isLoggedIn) {
         if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            onWalletGenerateListener.onErrorGenerate(activity.getString(R.string.write_external_storage_permission_not_enabled));
+            onWalletGenerateListener.onErrorGenerate(new ZafeplaceException(activity.getString(R.string.write_external_storage_permission_not_enabled)));
         } else if (!isLoggedIn) {
-            onWalletGenerateListener.onErrorGenerate(activity.getString(R.string.you_need_auth_to_generate_wallet));
+            onWalletGenerateListener.onErrorGenerate(new ZafeplaceException(activity.getString(R.string.you_need_auth_to_generate_wallet)));
         } else {
             getExecutor().execute(() -> {
                 try {
