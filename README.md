@@ -39,8 +39,10 @@
   Methods
   -------  
   
-  | Name | Description |
-  |-------|------------|
-  |getInstance(Activity)| Create instance of class Zafeplace|
+ Alt-H1
+======
+
+Alt-H2
+------
 
   
