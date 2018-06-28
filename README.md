@@ -13,8 +13,9 @@
           Zafeplace zafeplace = Zafeplace.getInstance(this);
  In the parameters of the method getInstance we need to set current activity.
  We can use any method using instance of Zafeplace dot name of method. For example 
- 
-    zafeplace.getTokenBalance(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(), new OnGetTokenBalance() {
+                
+            // example get token balance
+      zafeplace.getTokenBalance(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(), new OnGetTokenBalance() {
                 @Override
                 public void onTokenBalance(List<ResultToken> tokenBalance) {
                    // take response balance 
@@ -26,7 +27,23 @@
                  }
             });
             
-  Here we send into method type of currency, address of our wallet, and callback for taking result, because all methods of library is asynchronous. Also we can login for user authentication and using some methods like creating transactions and generating wallets.
+            // example generate wallet
+        zafeplace.generateWallet(ETH_WALLET, new OnWalletGenerateListener(){
+             @Override
+                public void onSuccessGenerate(String address) {
+                   // take address of new wallet
+                }
+
+                @Override
+                public void onErrorGenerate(Throwable error) {
+                   // handle error 
+                 }
+        });
+  Here we have two examples for two different methods: methods for taking token balance and method for generating new wallet. We have two different wallet types
+  : etherum and stellar. You have to send in method params needed type of currency like enum.
+  In first example we send into method type of currency, address of our wallet, and callback for taking result, because all methods of library is asynchronous.
+  In second example we generate new etherum wallet we send to method params type of currency and callback for taking result.
+  Also we can login for user authentication and using some methods like creating transactions and generating wallets.
   You can use fingerprint login and pin code login. For example - pin code login:
       
        zafeplace.pinCodeLogin(String pincode);
