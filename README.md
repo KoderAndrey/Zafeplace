@@ -38,6 +38,7 @@
   
   Methods
   -------  
+  
   | Name | Description |
   |-------|------------|
   |getInstance(Activity)| Create instance of class Zafeplace|
