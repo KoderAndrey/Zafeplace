@@ -37,8 +37,9 @@
        
   
   Methods
-  -------  
-  | Name | Description |
+  -------
+
+| Name | Description |
   |-------|------------|
   |getInstance(Activity)| Create instance of class Zafeplace|
   |generateWallet(WalletTypes, OnWalletGenerateListener)| Generate wallet for the specified type|
@@ -55,4 +56,20 @@
   |isLoggedIn()| method for checking is user is signed in |
   |getAuthType()| method for checking type of authentication, fingerprint or pin code |
   
-  
+
+| Name        | Description           | 
+| ------------- |:-------------:| 
+|  getInstance(Activity)     |  create instance of class Zafeplace.  | 
+| generateWallet(WalletTypes, OnWalletGenerateListener) | Generate wallet for the specified type. | 
+| getWalletBalance(WalletTypes, String, OnGetWalletBalance) | Get balance of wallet for the specified type and address |
+| createTransaction(WalletTypes, String, String, int, OnGetWalletBalance) | Create transaction for translation coins for specified type, address sender and address recipient |
+| createTransactionToken(WalletTypes, String, String, double, OnGetWalletBalance) | Create transaction for translation tokens for specified type, address sender and address recipient |
+| getTokenBalance(WalletTypes, String, OnGetTokenBalance) | Get balance tokens for wallet for  specified type and address |
+| getWalletBalance(WalletTypes, String, OnGetTokenBalance) |  Get balance coins for wallet for  specified type and address |
+| getSmartContractTransactionRaw(OnSmartContractRawList) |  Get list of smart contracts for ethereum currency |
+| executeSmartContractMethod(String, String, List<MethodParamsSmart>, OnExecuteMethodSmartContract) | Execute one of methods from list smart contracts for ethereum currency |
+| generateAccessToken(String, String, OnAccessTokenListener) | generate access token for authentication user  |
+| fingerprintLogin(FingerprintAuthenticationCallback) | method for login user with fingerprint |
+| pinCodeLogin(String) |  method for login user with pin code |
+|isLoggedIn()| method for checking is user is signed in |
+| getAuthType() |  method for checking type of authentication, fingerprint or pin code |
