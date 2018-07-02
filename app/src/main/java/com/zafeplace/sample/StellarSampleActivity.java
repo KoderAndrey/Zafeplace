@@ -145,12 +145,7 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
             public void run() {
                 try {
                     Thread.sleep(200);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLoadingDialogFragment.dismiss();
-                        }
-                    });
+                    runOnUiThread(() -> mLoadingDialogFragment.dismiss());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }

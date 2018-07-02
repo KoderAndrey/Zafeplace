@@ -45,7 +45,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_eth_sample);
         mUnbinder = ButterKnife.bind(this);
         mLoadingDialogFragment = LoadingDialogFragment.newInstance();
         mZafeplace = Zafeplace.getInstance(this);
@@ -110,8 +110,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
     public void onGetSmartContractAbiList(List<Abi> abis) {
         StringBuilder stringBuilder = new StringBuilder();
         for (Abi abi : abis) {
-            stringBuilder.append(abi.name + "\n");
-
+            stringBuilder.append(abi.name).append("\n");
             Log.d(TAG, "abi = " + abi);
         }
         Toast.makeText(this, stringBuilder.toString(), Toast.LENGTH_LONG).show();

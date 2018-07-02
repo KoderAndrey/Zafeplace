@@ -70,7 +70,6 @@ public class RegistrationActivity extends AppCompatActivity {
             if (!fingerprintManager.isHardwareDetected()) {
                 Toast.makeText(this, "Device don't support fingerprint", Toast.LENGTH_SHORT).show();
             } else if (!fingerprintManager.hasEnrolledFingerprints()) {
-                // User hasn't enrolled any fingerprints to authenticate with
                 Toast.makeText(this, "You don't have any fingerprints to authenticate", Toast.LENGTH_SHORT).show();
             } else {
                 if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
