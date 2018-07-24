@@ -70,12 +70,7 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
             public void run() {
                 try {
                     Thread.sleep(200);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLoadingDialogFragment.dismiss();
-                        }
-                    });
+                    runOnUiThread(() -> mLoadingDialogFragment.dismiss());
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -236,5 +231,3 @@ public class EthSampleActivity extends AppCompatActivity implements OnWalletGene
         super.onDestroy();
     }
 }
-//        "appSecret":"756496e0a7d900ade56913cc098749ee",
-//        "appId":"747231411253949"
