@@ -2,11 +2,7 @@ package com.zafeplace.sdk;
 
 import android.app.Activity;
 import android.support.v7.app.AlertDialog;
-import android.text.InputType;
-import android.view.ContextThemeWrapper;
 import android.widget.EditText;
-import android.widget.LinearLayout;
-import android.widget.Toast;
 
 import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
 import com.zafeplace.sdk.callbacks.OnExecuteMethodSmartContract;
@@ -33,7 +29,6 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-import static com.zafeplace.sdk.Constants.AuthType.FINGERPRINT_AUTH;
 import static com.zafeplace.sdk.Constants.AuthType.PIN_AUTH;
 import static com.zafeplace.sdk.Constants.TransactionType.COIN_TRANSACTION;
 import static com.zafeplace.sdk.Constants.TransactionType.TOKEN_TRANSACTION;
