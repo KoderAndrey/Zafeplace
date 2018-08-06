@@ -28,7 +28,6 @@ android {
 uploadArchives {
     repositories {
         mavenLocal()
-
     }
 }
 
@@ -40,7 +39,9 @@ task sourcesJar(type: Jar) {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'com.android.support:appcompat-v7:27.1.1'
-    implementation('org.web3j:core:3.3.1-android')
+    implementation('org.web3j:core:3.3.1-android') {
+        transitive = true;
+    }
     implementation('com.squareup.retrofit2:retrofit:2.3.0')
     implementation('com.squareup.retrofit2:converter-gson:2.3.0')
     implementation 'com.scottyab:aescrypt:0.0.1'
