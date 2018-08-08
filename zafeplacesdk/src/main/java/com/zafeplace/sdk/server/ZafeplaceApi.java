@@ -1,6 +1,7 @@
 package com.zafeplace.sdk.server;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.google.gson.JsonObject;
 import com.zafeplace.sdk.server.models.BalanceModel;
@@ -50,6 +51,7 @@ public class ZafeplaceApi {
     }
 
     public Call<LoginResponse> generateAccessToken(String appId, String appSecret) {
+        Log.wtf("tag", "access token");
         return service.getAccessToken(appId, appSecret);
     }
 

@@ -2,6 +2,7 @@ package com.zafeplace.sdk;
 
 import android.app.Activity;
 import android.support.v7.app.AlertDialog;
+import android.util.Log;
 import android.widget.EditText;
 
 import com.zafeplace.sdk.callbacks.OnAccessTokenListener;
@@ -78,7 +79,6 @@ public class Zafeplace {
     }
 
     public void generateAccessToken(String appId, String appSecret, final OnAccessTokenListener onAccessTokenListener) {
-
         ZafeplaceApi.getInstance(mActivity).generateAccessToken(appId, appSecret).enqueue(new Callback<LoginResponse>() {
             @Override
             public void onResponse(Call<LoginResponse> call, Response<LoginResponse> response) {

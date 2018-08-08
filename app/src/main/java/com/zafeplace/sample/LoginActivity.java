@@ -142,7 +142,6 @@ public class LoginActivity extends AppCompatActivity {
                         @Override
                         public void onErrorToken(Throwable error) {
                             loadingDialogFragment.dismiss();
-                            Log.wtf("tag", "error 1 " + error.getMessage());
                             StackTraceElement[] elements = error.getStackTrace();
                             for (StackTraceElement element : elements) {
                                 Log.wtf("tag", "ingo - " + element.getLineNumber() + " " + element);
@@ -151,7 +150,7 @@ public class LoginActivity extends AppCompatActivity {
                         }
                     });
         } else {
-            if (goMain) {
+            if (goMain) { ;
                 ChooseActivity.start(LoginActivity.this);
             }
         }

@@ -3,8 +3,6 @@ package com.zafeplace.sample;
 import android.content.Context;
 import android.support.multidex.MultiDexApplication;
 
-import com.zafeplace.sdk.Zafeplace;
-
 public class App extends MultiDexApplication {
 
     @Override

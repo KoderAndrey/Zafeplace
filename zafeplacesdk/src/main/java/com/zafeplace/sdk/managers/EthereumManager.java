@@ -6,6 +6,7 @@ import android.content.pm.PackageManager;
 import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.util.Log;
 
 import com.zafeplace.sdk.R;
 import com.zafeplace.sdk.Zafeplace;
@@ -24,13 +25,14 @@ import com.zafeplace.sdk.server.models.ResultModel;
 import com.zafeplace.sdk.server.models.SmartContractTransactionRaw;
 import com.zafeplace.sdk.server.models.TransactionRaw;
 
+//import org.web3j.protocol.Web3jFactory;
+//import org.web3j.protocol.http.HttpService;
+
+
 import org.web3j.crypto.Credentials;
-import org.web3j.crypto.RawTransaction;
-import org.web3j.crypto.TransactionEncoder;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.http.HttpService;
-import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -43,6 +45,8 @@ import static com.zafeplace.sdk.Constants.ETH_SERVICE_URL;
 import static com.zafeplace.sdk.Constants.ZAFEPLACE_PASSWORD;
 import static com.zafeplace.sdk.utils.StorageUtils.deleteFile;
 import static com.zafeplace.sdk.utils.WalletUtils.getWalletName;
+
+//import org.web3j.crypto.TransactionEncoder;
 
 public class EthereumManager extends WalletManager {
 
@@ -179,12 +183,12 @@ public class EthereumManager extends WalletManager {
     }
 
     private void executeTransaction(Response<TransactionRaw> response, Activity activity, OnMakeTransaction onMakeTransaction) {
-        TransactionRaw raw = response.body();
-        Credentials credentials = Credentials.create(getPreferencesManager().getEthWallet(activity).getPrivateKey());
-        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
-                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
-        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
-        String hexValue = Numeric.toHexString(signedMessage);
-        showDialog(hexValue, onMakeTransaction, getWalletType(), activity);
+//        TransactionRaw raw = response.body();
+//        Credentials credentials = Credentials.create(getPreferencesManager().getEthWallet(activity).getPrivateKey());
+//        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
+//                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
+//        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+//        String hexValue = Numeric.toHexString(signedMessage);
+//        showDialog(hexValue, onMakeTransaction, getWalletType(), activity);
     }
 }
