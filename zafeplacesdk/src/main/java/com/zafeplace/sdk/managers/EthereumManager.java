@@ -30,9 +30,12 @@ import com.zafeplace.sdk.server.models.TransactionRaw;
 
 
 import org.web3j.crypto.Credentials;
+import org.web3j.crypto.RawTransaction;
+import org.web3j.crypto.TransactionEncoder;
 import org.web3j.crypto.WalletUtils;
 import org.web3j.protocol.Web3jFactory;
 import org.web3j.protocol.http.HttpService;
+import org.web3j.utils.Numeric;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -183,12 +186,12 @@ public class EthereumManager extends WalletManager {
     }
 
     private void executeTransaction(Response<TransactionRaw> response, Activity activity, OnMakeTransaction onMakeTransaction) {
-//        TransactionRaw raw = response.body();
-//        Credentials credentials = Credentials.create(getPreferencesManager().getEthWallet(activity).getPrivateKey());
-//        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
-//                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
-//        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
-//        String hexValue = Numeric.toHexString(signedMessage);
-//        showDialog(hexValue, onMakeTransaction, getWalletType(), activity);
+        TransactionRaw raw = response.body();
+        Credentials credentials = Credentials.create(getPreferencesManager().getEthWallet(activity).getPrivateKey());
+        RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
+                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
+        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+        String hexValue = Numeric.toHexString(signedMessage);
+        showDialog(hexValue, onMakeTransaction, getWalletType(), activity);
     }
 }
