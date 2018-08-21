@@ -72,3 +72,39 @@
 | pinCodeLogin(String) |  Method for login user with pin code |
 |isLoggedIn()| Method for checking is user is signed in |
 | getAuthType() |  Method for checking type of authentication, fingerprint or pin code |
+
+
+  Installation Android Gradle
+  -----------------
+  
+   To use Zafeplace add the plugin to your top-level build.gradle file:
+   
+     allprojects {
+   		    repositories {
+   		    	...
+   		    	maven { url 'https://jitpack.io' }
+   	     	}
+     	}
+     	
+     	
+    
+   Then add to your module - level build.gradle file next:
+    
+         dependencies {
+             implementation 'com.github.KoderAndrey:Zafeplace:dev-SNAPSHOT'
+          }
+  
+   Next you have to add  
+     
+    android {
+            ...
+             compileOptions {
+                    sourceCompatibility JavaVersion.VERSION_1_8
+                    targetCompatibility JavaVersion.VERSION_1_8
+                }
+     }   
+     
+    
+   Also you need to enable multidex in your app. Then you can use all functionality of our lib.
+       
+      
