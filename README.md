@@ -74,7 +74,7 @@
 | getAuthType() |  Method for checking type of authentication, fingerprint or pin code |
 
 
-  Installation Android Gradle
+  Installation with Android Gradle
   -----------------
   
    To use Zafeplace add the plugin to your top-level build.gradle file:
