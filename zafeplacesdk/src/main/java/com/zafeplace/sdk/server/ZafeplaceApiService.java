@@ -20,44 +20,47 @@ import retrofit2.http.Query;
 
 public interface ZafeplaceApiService {
 
-    String ZAFEPLACE_BASE_URL = "http://35.233.100.41:3000/";
+    String ZAFEPLACE_BASE_URL = "http://35.233.100.41:3000/api/v1/";
 
-    @GET("/app/session/login")
+    @GET("sdk/session/login")
     Call<LoginResponse> getAccessToken(@Query("appId") String appId,
                                        @Query("appSecret") String appSecret);
 
-    @GET("/app/{network}/account/balance")
+    @GET("sdk/{network}/account/balance")
     Call<BalanceModel> getWalletBalance(@Path("network") String walletType,
                                         @Query("address") String address);
 
-    @GET("/app/{network}/account/token-balance")
+    @GET("sdk/{network}/account/token-balance")
     Call<TokenBalans> getTokenBalance(@Path("network") String walletType,
                                       @Query("addre" +
                                               "ss") String address);
 
-    @GET("/app/{network}/account/native-coin/rawtx")
+    @GET("sdk/{network}/account/native-coin-raw-transaction")
     Call<TransactionRaw> getTransactionRaw(@Path("network") String walletType,
                                            @Query("sender") String addressSender,
                                            @Query("recipient") String addressRecipient,
                                            @Query("amount") double amount);
 
-
-
-    @GET("/app/{network}/account/token-transfer/rawtx")
+    @GET("sdk/{network}/account/token-raw-transaction")
     Call<TransactionRaw> getTokenTransactionRaw(@Path("network") String walletType,
                                                 @Query("sender") String addressSender,
                                                 @Query("recipient") String addressRecipient,
                                                 @Query("amount") int amount);
 
     @Headers("Content-Type: application/json")
-    @POST("/app/{network}/account/send-tx")
+    @POST("sdk/{network}/account/send-transaction")
     Call<JsonObject> doTransaction(@Body HexModel hexModel,
                                    @Path("network") String walletType);
 
-    @GET("/app/{network}/contract/abi")
+    @GET("sdk/{network}/contract/abi")
     Call<SmartContractTransactionRaw> getTransactionSmart(@Path("network") String walletType);
 
-    @POST("/app/{network}/contract/execute-method")
+    @POST("sdk/{network}/contract/execute-method")
     Call<ResultModel> executeContractInformationMethod(@Path("network") String network,
                                                           @Body ContractModel contractModel);
+
+    @GET("sdk/{network}/account/change-trust")
+    Call<TransactionRaw> changeTrust(@Path("network") String network,
+                             @Query("recipient") String recipient ,
+                             @Query("limit") Double limit);
 }

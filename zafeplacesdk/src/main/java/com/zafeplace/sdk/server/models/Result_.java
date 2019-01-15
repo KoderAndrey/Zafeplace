@@ -11,6 +11,7 @@ public class Result_ {
     public BigInteger value;
     public BigInteger chainId;
     public String rawTx;
+    public String data;
 
     @Override
     public String toString() {

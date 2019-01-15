@@ -36,8 +36,8 @@ public class LoginActivity extends AppCompatActivity {
     private boolean mIsRegistrtation;
     private Unbinder mUnbinder;
 
-    private static final String APP_SECRET = "756496e0a7d900ade56913cc098749ee";
-    private static final String APP_ID = "747231411253949";
+    private static final String APP_SECRET = "698940504ca9c2353f2494299926694f";
+    private static final String APP_ID = "291377603636896";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

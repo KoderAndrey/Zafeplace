@@ -82,5 +82,8 @@ public class ZafeplaceApi {
     public Call<JsonObject> doTransaction(String signTx, String walletType) {
         return service.doTransaction(new HexModel(signTx), walletType);
     }
+    public Call<TransactionRaw> chaneTrust(String walletType,String recipient,Double limit){
+        return service.changeTrust(walletType,recipient,limit);
+    }
 }
 

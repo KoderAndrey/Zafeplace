@@ -30,11 +30,14 @@ import static com.zafeplace.sdk.utils.WalletUtils.getWalletName;
 
 public class StellarManager extends WalletManager {
 
+
+
     @Override
     public void generateWallet(OnWalletGenerateListener onWalletGenerateListener, Activity activity, boolean isLoggedIn) {
         KeyPair pair = KeyPair.random();
         String secretSeed = new String(pair.getSecretSeed());
         String accId = pair.getAccountId();
+        //Todo switch off when main net
         final String friendbotUrl = String.format(
                 "https://friendbot.stellar.org/?addr=%s",
                 pair.getAccountId());
@@ -130,5 +133,22 @@ public class StellarManager extends WalletManager {
                 onMakeTransaction.onErrorTransaction(e);
             });
         }
+    }
+    public void changeTrust(String addressRecipient, Double limit, OnMakeTransaction onMakeTransaction, Activity activity) {
+        ZafeplaceApi.getInstance(activity).chaneTrust(getWalletName(getWalletType()), addressRecipient, limit).enqueue(new Callback<TransactionRaw>() {
+            @Override
+            public void onResponse(Call<TransactionRaw> call, Response<TransactionRaw> response) {
+                getExecutor().execute(() -> {
+                            executeTransaction(response, activity, onMakeTransaction);
+                        }
+                );
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<TransactionRaw> call, @NonNull Throwable t) {
+                onMakeTransaction.onBreakTransaction();
+                showErrorDialog(t.getMessage(), activity);
+            }
+        });
     }
 }

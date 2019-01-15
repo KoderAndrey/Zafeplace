@@ -31,6 +31,8 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
     EditText numberCoin;
     @BindView(R.id.number_token_s)
     EditText numberTokens;
+    @BindView(R.id.number_trust)
+    EditText numberTrust;
     private LoadingDialogFragment mLoadingDialogFragment;
     private Unbinder mUnbinder;
 
@@ -71,7 +73,7 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
     public void createTransactionStellar(View view) {
         if (mZafeplace.isIdentityExist(STELLAR_WALLET) && !numberCoin.getText().toString().equals("")) {
             mZafeplace.createTransaction(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(),
-                    "GBHQ7TFBFEWJVLT4VTEZI2ISOVYSJFGM6TJJTHDSJZQBY65ARQRCYOP5",
+                    "GD44FXG36FHJKWK2P56UBMF7QCMUIKGRSGGC7MEJAPWYKECIHN3VJU3R",
                     Integer.parseInt(numberCoin.getText().toString()), this);
         } else if (numberCoin.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
@@ -80,10 +82,21 @@ public class StellarSampleActivity extends AppCompatActivity implements OnWallet
         }
     }
 
+    public void changeTrust(View view){
+        if (mZafeplace.isIdentityExist(STELLAR_WALLET) && !numberTokens.getText().toString().equals("")) {
+            mZafeplace.changeTrust(mZafeplace.getWallet(STELLAR_WALLET).getAddress(),
+                    Double.parseDouble(numberTrust.getText().toString()), this);
+        } else if (numberTrust.getText().toString().equals("")) {
+            Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();
+        } else if (!mZafeplace.isIdentityExist(STELLAR_WALLET)) {
+            Toast.makeText(this, "Please generate wallet at first", Toast.LENGTH_SHORT).show();
+        }
+
+    }
     public void createTokenTransactionStellar(View view) {
         if (mZafeplace.isIdentityExist(STELLAR_WALLET) && !numberTokens.getText().toString().equals("")) {
             mZafeplace.createTransactionToken(STELLAR_WALLET, mZafeplace.getWallet(STELLAR_WALLET).getAddress(),
-                    "GBHQ7TFBFEWJVLT4VTEZI2ISOVYSJFGM6TJJTHDSJZQBY65ARQRCYOP5",
+                    "GD44FXG36FHJKWK2P56UBMF7QCMUIKGRSGGC7MEJAPWYKECIHN3VJU3R",
                     Double.parseDouble(numberTokens.getText().toString()), this);
         } else if (numberTokens.getText().toString().equals("")) {
             Toast.makeText(this, "Input number", Toast.LENGTH_SHORT).show();

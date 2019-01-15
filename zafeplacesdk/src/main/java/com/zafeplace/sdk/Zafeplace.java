@@ -142,6 +142,10 @@ public class Zafeplace {
         }
     }
 
+    public void changeTrust(String addressRecipient, double amount,final OnMakeTransaction onMakeTransaction){
+        mStellarManager.changeTrust(addressRecipient,amount,onMakeTransaction,mActivity);
+    }
+
     public void createTransactionToken(WalletTypes walletType, String addressSender, String addressRecipient, double amount,
                                        final OnMakeTransaction onMakeTransaction) {
         switch (walletType) {

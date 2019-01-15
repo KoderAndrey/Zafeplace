@@ -93,7 +93,7 @@ public class EthereumManager extends WalletManager {
         ZafeplaceApi.getInstance(activity).getRawTransaction(getWalletName(getWalletType()), addressSender, addressRecipient, amount).enqueue(new Callback<TransactionRaw>() {
             @Override
             public void onResponse(@NonNull Call<TransactionRaw> call, @NonNull Response<TransactionRaw> response) {
-                executeTransaction(response, activity, onMakeTransaction);
+                executeEtherTransaction(response, activity, onMakeTransaction);
             }
 
             @Override
@@ -109,7 +109,7 @@ public class EthereumManager extends WalletManager {
         ZafeplaceApi.getInstance(activity).getTokenTransactionRaw(getWalletName(getWalletType()), addressSender, addressRecipient, amount).enqueue(new Callback<TransactionRaw>() {
             @Override
             public void onResponse(@NonNull Call<TransactionRaw> call, @NonNull Response<TransactionRaw> response) {
-                executeTransaction(response, activity, onMakeTransaction);
+                executeTokenTransaction(response, activity, onMakeTransaction);
             }
 
             @Override
@@ -185,11 +185,23 @@ public class EthereumManager extends WalletManager {
         });
     }
 
-    private void executeTransaction(Response<TransactionRaw> response, Activity activity, OnMakeTransaction onMakeTransaction) {
+    private void executeEtherTransaction(Response<TransactionRaw> response, Activity activity, OnMakeTransaction onMakeTransaction) {
         TransactionRaw raw = response.body();
         Credentials credentials = Credentials.create(getPreferencesManager().getEthWallet(activity).getPrivateKey());
         RawTransaction rawTransaction = RawTransaction.createEtherTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
                 new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.value);
+
+        byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
+        String hexValue = Numeric.toHexString(signedMessage);
+        showDialog(hexValue, onMakeTransaction, getWalletType(), activity);
+    }
+
+    private void executeTokenTransaction(Response<TransactionRaw> response, Activity activity, OnMakeTransaction onMakeTransaction) {
+        TransactionRaw raw = response.body();
+        Credentials credentials = Credentials.create(getPreferencesManager().getEthWallet(activity).getPrivateKey());
+        RawTransaction rawTransaction = RawTransaction.createTransaction(raw.result.rawTx.result.nonce, new BigInteger(raw.result.rawTx.result.gasPrice),
+                new BigInteger(raw.result.rawTx.result.gasLimit), raw.result.rawTx.result.to, raw.result.rawTx.result.data);
+
         byte[] signedMessage = TransactionEncoder.signMessage(rawTransaction, credentials);
         String hexValue = Numeric.toHexString(signedMessage);
         showDialog(hexValue, onMakeTransaction, getWalletType(), activity);

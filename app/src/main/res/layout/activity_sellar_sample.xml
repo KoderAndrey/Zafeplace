@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -67,7 +68,6 @@
         app:layout_constraintTop_toBottomOf="@+id/button5s" />
 
 
-
     <EditText
         android:id="@+id/nuber_coin_s"
         android:layout_width="100dp"
@@ -89,4 +89,29 @@
         app:layout_constraintBottom_toBottomOf="@+id/button6s"
         app:layout_constraintStart_toEndOf="@+id/button6s"
         app:layout_constraintTop_toTopOf="@+id/button6s" />
+
+    <Button
+        android:id="@+id/bt_trust"
+        android:layout_width="206dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="Change Trust"
+        android:onClick="changeTrust"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button6s" />
+
+    <EditText
+        android:id="@+id/number_trust"
+        android:layout_width="92dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:hint="number"
+        android:inputType="number"
+        android:layout_marginEnd="8dp"
+        app:layout_constraintEnd_toEndOf="@+id/number_token_s"
+        app:layout_constraintStart_toEndOf="@+id/bt_trust"
+        app:layout_constraintTop_toBottomOf="@+id/number_token_s" />
+
 </android.support.constraint.ConstraintLayout>
